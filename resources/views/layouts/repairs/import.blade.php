@@ -1,0 +1,70 @@
+@extends('layouts.dashboard.landpage')
+
+@section('content')
+ <link href="{{ asset('assets/libs/dropzone/min/dropzone.min.css') }}" rel="stylesheet" type="text/css" />
+<style>
+    th, td {
+        font-size: 12px;
+    }
+</style>
+
+<!-- Success Message -->
+@if (session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
+@endif
+
+<!-- Page Title -->
+<div class="row">
+    <div class="col-12">
+        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+            <h4 class="mb-sm-0 px-1">Repairs & Maintenance</h4> 
+            <div class="page-title-right">
+                <ol class="breadcrumb m-0">
+                      <li class="breadcrumb-item"><a href="{{ route('maintenance.index') }}">Repairs & Maintenance</a></li>
+                    <li class="breadcrumb-item active">Import</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+     <div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+
+                <h4 class="card-title">Repairs Import</h4>
+                <p class="card-title-desc">This supports only spreadsheet files</p>
+
+                <div>
+                    <form action="{{ route('maintenance.import') }}" class="dropzone" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <div class="fallback">
+                            <input name="file" type="file" multiple="multiple">
+                        </div>
+                        <div class="dz-message needsclick">
+                            <div class="mb-3">
+                                <i class="display-4 text-muted ri-upload-cloud-2-line"></i>
+                            </div>
+                            <h4>Drop property files here or click to upload.</h4>
+                            
+                        </div>
+                        
+                    
+                </div>
+
+            </div> 
+        </div>
+    </div> <!-- end col -->
+</div> <!-- end row -->
+
+</form>
+
+@endsection
+
+
+@section('scripts')
+<script src="{{ asset('assets/libs/dropzone/min/dropzone.min.js') }}"></script>
+@endsection
