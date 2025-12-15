@@ -164,22 +164,33 @@
                                             </div>
                                         </div>
                                         <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label class="form-label" for="country_id">Locations</label>
-                                                <div class="custom-select-wrapper">
-                                                    <input type="text" class="custom-select-search @error('country_id') is-invalid @enderror" placeholder="Select Location" autocomplete="off" required>
-                                                    <input type="hidden" name="country_id" id="country_id" value="{{ old('country_id') }}">
-                                                    <div class="custom-select-dropdown">
-                                                        @foreach ($countries as $country)
-                                                            <div class="custom-select-option" data-value="{{ $country['id'] }}">{{ $country['name'] }}</div>
-                                                        @endforeach
-                                                    </div>
-                                                    @error('country_id')
-                                                        <div class="invalid-feedback">{{ $message }}</div>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                        </div>
+    <div class="mb-3">
+        <label class="form-label" for="location_id">Location</label>
+        <div class="custom-select-wrapper">
+            <input type="text"
+                   class="custom-select-search @error('location_id') is-invalid @enderror"
+                   placeholder="Select Location"
+                   autocomplete="off"
+                   required>
+
+            <input type="hidden" name="location_id" id="location_id" value="{{ old('location_id') }}">
+
+            <div class="custom-select-dropdown">
+                @foreach ($locations as $location)
+                    <div class="custom-select-option"
+                         data-value="{{ $location->id }}">
+                        {{ $location->name }}
+                    </div>
+                @endforeach
+            </div>
+
+            @error('location_id')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+    </div>
+</div>
+
                                     </div>
 
                                     <div class="row">

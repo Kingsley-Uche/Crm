@@ -10,10 +10,7 @@ class BlockModel extends Model
         'name',
         'address',
         'landlord_id',
-        'state_name',
-        'country_name',
         'location_id',
-        'lgvt_name', // Ensure this field name is correct
     ];
 
     /**
@@ -27,18 +24,12 @@ class BlockModel extends Model
     /**
      * Get the state that the block belongs to.
      */
-    public function state()
-     {
-        return $this->belongsTo(States::class, 'state_id');
-     }
+   
 
     /**
      * Get the local government that the block belongs to.
      */
-    public function localGovernment()
-    {
-     return $this->belongsTo(LocalGvt::class, 'lgvt_id');
-    }
+   
     public function location()
 {
     return $this->belongsTo(LocationModel::class, 'location_id', 'id');

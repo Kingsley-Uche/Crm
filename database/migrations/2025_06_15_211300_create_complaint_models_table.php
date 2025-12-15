@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('assigned_to')->nullable();
 
             $table->foreignId('tenant_id')->nullable()->constrained('tenants')->onDelete('set null');
-            $table->foreignId('created_by_admin_id')->nullable()->constrained('admins')->onDelete('set null');
+            $table->foreignId('created_by_admin_id')->nullable()->constrained('admin_models')->onDelete('set null');
 
             $table->string('phone')->nullable();
             $table->string('email')->nullable();

@@ -19,6 +19,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\MultiTableImport;
 use App\Models\LocationModel;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Cache;
 class PropertyController extends Controller
 {
     // Create (store)
@@ -33,14 +34,12 @@ class PropertyController extends Controller
         $amenities = Amenities::all();
         $shelters = Shelter::all();
         $landlords = EstateOwner::all();
-        //$states = States::all();
-        // $json = Storage::get('json/countries.json');
-        $countries = LocationModel::all();
+        
+        $locations = LocationModel::all();
         session(['shelters' => $shelters]);
+    
 
-        return view('layouts.property_manager.create', compact('blocks', 'amenities', 'shelters', 'landlords',
-        //'states', 
-        'countries'));
+        return view('layouts.property_manager.create', compact('blocks', 'amenities', 'shelters', 'landlords','locations'));
     }
 
  
@@ -55,32 +54,16 @@ public function storeBlock(Request $request)
     if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'create_property')))) {
         return redirect()->back()->with('error', 'Unauthorized access to create property.');
     }
+    
 
     $validated = $request->validate([
         'name' => 'required|string|max:255',
         'address' => 'required|string|max:255',
-        'landlord_id' => 'required|integer|exists:estate_owners,id',
-        'state_id' => 'nullable|string',
-        'local_government_id' => 'nullable|string',
         'shelter_qty' => 'required|array',
-        'country_id' => 'required|string|exists:location_models,id',
+        'landlord_id'=>'required|integer',
+        'location_id' => 'required|string|exists:location_models,id',
     ]);
 
-    // Fetch state and local government names if valid
-    if (!empty($validated['state_id']) && is_numeric($validated['state_id']) && is_numeric($validated['local_government_id'])) {
-        $data = States::select('states.name as state_name', 'local_governments.name as local_govt_name')
-            ->join('local_governments', 'local_governments.state_id', '=', 'states.id')
-            ->where('states.id', $validated['state_id'])
-            ->where('local_governments.id', $validated['local_government_id'])
-            ->first();
-
-        if ($data) {
-            $validated['state_id'] = $data->state_name;
-            $validated['local_government_id'] = $data->local_govt_name;
-        }
-    }
-
-    // Normalize inputs
     $validated['name'] = strtolower($validated['name']);
     $validated['address'] = strtolower($validated['address']);
 
@@ -89,7 +72,7 @@ public function storeBlock(Request $request)
         'name' => $validated['name'],
         'address' => $validated['address'],
         'landlord_id' => $validated['landlord_id'],
-        'location_id' => $validated['country_id'],
+        'location_id' => $validated['location_id'],
     ]);
 
     $amenities = Amenities::all();
@@ -156,23 +139,13 @@ private function validateBlockData(Request $request)
         'name' => 'required|string|max:255',
         'address' => 'required|string|max:255',
         'landlord_id' => 'required|integer|exists:estate_owners,id',
-        'state_id' => 'required',
-        'local_government_id' => 'required',
         'shelter_qty' => 'required|array',
         'shelter_qty.*' => 'required|integer|min:0',
-        'country_id' => 'required|string',
+        'location_id' => 'required|string',
     ]);
 }
 
-private function getLocationData($stateId, $localGovernmentId)
-{
-    return States::with('localGovernments') // Assuming the relationship is 'localGovernments'
-        ->select('states.name as state_name', 'local_governments.name as local_govt_name')
-        ->join('local_governments', 'local_governments.state_id', '=', 'states.id')
-        ->where('states.id', $stateId)
-        ->where('local_governments.id', $localGovernmentId)
-        ->firstOrFail(); // Fails if no match is found
-}
+
 
 private function convertToLowercase(array &$validated)
 {
@@ -186,9 +159,7 @@ private function createBlock(array $validated, $locationData)
         'name' => $validated['name'],
         'address' => $validated['address'],
         'landlord_id' => $validated['landlord_id'],
-        'state_name' => $locationData->state_name,
-        'lgvt_name' => $locationData->local_govt_name,
-        'country_name' => $validated['country_id'],
+        'location_id'=>$validated['location_id'],
     ]);
 }
 
@@ -281,8 +252,6 @@ public function blockIndex()
             'block_models.id as block_model_id',
             'block_models.name as block_title', 
             'block_models.address as block_address',
-            'block_models.state_name as block_state_name', 
-            'block_models.lgvt_name as block_lgvt_name',
             'block_models.landlord_id',
             'block_models.location_id'
         )
@@ -291,33 +260,6 @@ public function blockIndex()
     // Fetch and cache local government and state names to avoid repeated queries
     $stateLocalGvtMap = [];
     foreach ($blocks as $block) {
-       
-        
-        if (is_numeric($block->block_state_name) && is_numeric($block->block_lgvt_name)) {
-        
-            // Check if we've already fetched the local government and state name for this pair
-            $key = "{$block->block_state_name}_{$block->block_lgvt_name}";
-            if (!isset($stateLocalGvtMap[$key])) {
-                // Fetch and cache the state and local government names
-                $data = LocalGvt::select(
-                    'states.name as state_name', 
-                    'local_governments.name as lgvt_name'
-                )
-                ->join('states', 'local_governments.state_id', '=', 'states.id')
-                ->where('local_governments.id', $block->block_lgvt_name)
-                ->first();
-
-                if ($data) {
-                    $stateLocalGvtMap[$key] = $data;
-                }
-            }
-
-            // Assign the cached state and local government names
-            if (isset($stateLocalGvtMap[$key])) {
-                $block->block_state_name = $stateLocalGvtMap[$key]->state_name;
-                $block->block_lgvt_name = $stateLocalGvtMap[$key]->lgvt_name;
-            }
-        }
          $block->shelters = Shelter::join('block_shelters', 'block_shelters.shelter_id', '=', 'shelters.id')
             ->where('block_shelters.block_models_id', $block->block_model_id)
             ->select('shelters.name as shelter_name', 'block_shelters.shelter_qty', 'block_shelters.shelter_id as shelter_id')
@@ -347,13 +289,13 @@ public function showBlock($id)
     $landlords = EstateOwner::all(); 
 
     // Fetch countries from JSON file
-    $countries = LocationModel::all();
-    //json_decode(Storage::get('json/countries.json'), true);
+    $locations = LocationModel::all();
+    
 
  
 
     // Return the view with compacted data
-    return view('layouts.property_manager.edit', compact('block', 'shelters', 'landlords', 'countries'));
+    return view('layouts.property_manager.edit', compact('block', 'shelters', 'landlords', 'locations'));
 }
 
 
@@ -368,10 +310,8 @@ public function blockUpdate(Request $request, $id)
     $validated = $request->validate([
         'name' => 'required|string|max:255',
         'address' => 'required|string|max:255',
-        'landlord_id' => 'required|integer|exists:estate_owners,id',
-        'country_id' => 'required|string',
-        'state_id' => 'nullable|string',
-        'local_government_id' => 'nullable|string',
+        'landlord_id' => 'required|integer',
+        'location_id'=>'required|integer',
         'shelter_qty' => 'required|array',
         'shelter_qty.*' => 'required|integer|min:0',
     ]);
@@ -388,9 +328,7 @@ public function blockUpdate(Request $request, $id)
         'name' => $validated['name'],
         'address' => $validated['address'],
         'landlord_id' => $validated['landlord_id'],
-       // 'state_name' => $validated['state_id'],
-       // 'lgvt_name' => $validated['local_government_id'],
-        'location_id'=>$validated['country_id'],
+        'location_id'=>$validated['location_id'],
     ]);
 
     // Fetch shelters for the block in a keyed collection for efficient lookups
@@ -439,56 +377,7 @@ public function blockUpdate(Request $request, $id)
     }
 
     // Fetch LGVT (Local Government Area)
-public function getLgvt(Request $request)
-{
-    // Initialize validated array
-    $validated = [];
 
-    // Get the 'state_id' from the request
-    $stateId = $request->post('state_id');
-
-    // Check if 'state_id' is numeric (whether integer or numeric string)
-    if (is_numeric($stateId)) {
-        // Convert the numeric string to an integer
-        $validated['state_id'] = (int) $stateId;
-
-        // Validate if 'state_id' exists in the states table
-        $stateExists = States::where('id', $validated['state_id'])->exists();
-
-        if (!$stateExists) {
-            Log::error('Invalid state ID: ' . $validated['state_id']);
-            return response()->json(['error' => 'Invalid state ID'], 400);
-        }
-    } else {
-        // If 'state_id' is a string, treat it as a state name and find the corresponding ID
-        $state = States::where('name', strip_tags($stateId))
-            ->select('id')
-            ->first();
-
-        if ($state) {
-            $validated['state_id'] = $state->id;
-        } else {
-            Log::error('Invalid state name: ' . $stateId);
-            return response()->json(['error' => 'Invalid state name'], 400);
-        }
-    }
-
-    // Log the validated state_id for debugging
-   // Log::info('Validated state_id: ' . $validated['state_id']);
-
-    // Fetch Local Government Areas (LGAs) based on the validated state_id
-    $lgvts = LocalGvt::where('state_id', $validated['state_id'])->get();
-
-    // Log the LGAs data (for debugging)
-    // Log::info('LGAs fetched:', $lgvts->toArray());
-
-    // Return the list of LGAs as a JSON response
-    Cache::forget('amenities_list');
-    return response()->json([
-        'success' => true,
-        'data' => $lgvts->toArray(),
-    ], 200);
-}
 
 
     // Additional private method to save block shelter (corrected)

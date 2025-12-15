@@ -188,11 +188,11 @@
                                                     <input type="text" class="custom-select-search @error('country_id') is-invalid @enderror" placeholder="Select Location" autocomplete="off" required>
                                                     <input type="hidden" name="country_id" id="country_id" value="{{ old('country_id', $block->country_id) }}">
                                                     <div class="custom-select-dropdown">
-                                                        @foreach ($countries as $country)
-                                                            <div class="custom-select-option" data-value="{{ $country['id'] }}">{{ $country['name'] }}</div>
+                                                        @foreach ($locations as $location)
+                                                            <div class="custom-select-option" data-value="{{ $location['id'] }}">{{ $location['name'] }}</div>
                                                         @endforeach
                                                     </div>
-                                                    @error('country_id')
+                                                    @error('location_id')
                                                         <div class="invalid-feedback">{{ $message }}</div>
                                                     @enderror
                                                 </div>
