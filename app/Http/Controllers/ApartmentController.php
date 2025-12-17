@@ -48,6 +48,7 @@ if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains
             'admin_unit' => 'required|string|min:1',
             'unit_name' => 'required|string|min:1',
             'post_code' => 'required|string|min:1',
+            'address'=>'required|string',
             'amenities' => 'required|array',
             'amenities.*.id' => 'required|exists:amenities,id',
             'amenities.*.quantity' => 'required|integer|min:0',
@@ -71,8 +72,9 @@ if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains
                     'property_ref' => $validated['property_ref'],
                     'ownership' => $validated['ownership'],
                     'admin_unit' => $validated['admin_unit'],
-                    'unit_name' => $validated['unit_name'],
+                    'unit_number' => $validated['unit_name'],
                     'post_code' => $validated['post_code'],
+                    'address'=>$validated['address'],
                 ]);
 
                 // Update Shelter_Amenities in bulk
@@ -203,7 +205,6 @@ public function index($block_id, $shelter_id)
     // Permission check
     $user = Session::get('user');
     $permissions = Session::get('permissions');
-
     if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'read_apartments')))) {
         return redirect()->back()->with('error', 'Unauthorized access to apartments.');
     }
@@ -248,11 +249,10 @@ public function index($block_id, $shelter_id)
         ->get();
 
     // Fetch and format shelter amenities
-    $amenity_apartment = Shelter_Amenities::with(['amenity.amenitySizes']) // Use 'amenity' as per model
+    $amenity_apartment = Shelter_Amenities::with(['amenities.amenitySizes']) // Use 'amenity' as per model
         ->where('block_models_id', $block_id)
         ->where('block_shelter_id', $shelter_id)
-        ->get()
-        ->map(function ($shelterAmenity) use ($blockShelter) {
+        ->get()->map(function ($shelterAmenity) use ($blockShelter) {
             $amenity = $shelterAmenity->amenity;
             if (!$amenity) return [];
 

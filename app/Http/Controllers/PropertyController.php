@@ -277,6 +277,7 @@ public function blockIndex()
 public function showBlock($id)
 {
     $user = Session::get('user');
+    
     $permissions = Session::get('permissions');
     if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'read_property')))) {
         return redirect()->back()->with('error', 'Unauthorized access to property management.');
