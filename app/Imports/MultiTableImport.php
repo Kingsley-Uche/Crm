@@ -28,8 +28,11 @@ class MultiTableImport implements ToArray
             Log::warning('Empty Excel file provided');
             return;
         }
+        
 
         $header = array_shift($array);
+        
+    
         $shelterTypes = Shelter::pluck('name', 'id')->map(fn($name) => strtolower($name));
         $tenancyTypes = TenancyTypeModel::pluck('name')->map(fn($name) => strtolower($name));
         $bedAmenity = Amenities::where('name', 'bed')->select('id')->first();

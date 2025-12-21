@@ -249,16 +249,13 @@ public function updateAmenitySize(Request $request)
     ) {
         return redirect()->back()->with('error', 'Unauthorized access to apartments.');
     }
-
-    DB::transaction(function () use ($validated) {
-return response()->json([$validated],422);
+    
         /** 1️⃣ DELETE EXISTING RECORDS */
-        if (!empty($validated['amenity_size_id'])) {
-            AmenitySize::whereIn('id', $validated['amenity_size_id'])
-                ->where('apartment_id', $validated['apartment_id'])
-                ->where('shelter_id', $validated['shelter_id'])
-                ->where('amenity_id', $validated['amenity_id'])
-                ->where('block_models_id', $validated['amenity_block_id'])
+        if (!empty($validated['amenity_id'])&& (int)($validated['amenity_id']>0)) {
+            AmenitySize::where('amenity_id', (int)$validated['amenity_id'])
+                ->where('apartment_id',(int) $validated['apartment_id'])
+                ->where('shelter_id', (int)$validated['shelter_id'])
+                ->where('block_models_id', (int)$validated['amenity_block_id'])
                 ->delete();
         }
 
@@ -277,10 +274,10 @@ return response()->json([$validated],422);
                 'updated_at'       => now(),
             ];
         }
-return response()->json([$insertData],422);
+
         /** 3️⃣ BULK INSERT (FAST) */
         AmenitySize::insert($insertData);
-    });
+
 
     return response()->json([
         'success' => true,

@@ -432,8 +432,8 @@ public function blockUpdate(Request $request, $id)
 
     try {
         // Perform the import
-        Excel::import(new MultiTableImport, $request->file('file'));
-Cache::forget('amenities_list');
+     Excel::import(new MultiTableImport, $request->file('file'));
+        Cache::forget('amenities_list');
         // Return a JSON response indicating success
         return response()->json([
             'message' => 'Properties imported successfully!',

@@ -329,6 +329,15 @@
                             `<div class="error-container alert alert-danger">${Object.values(data.errors).flat().join('<br>')}</div>`
                         );
                     } else {
+                        if(data.success){
+                            document.querySelectorAll('.amenity').forEach(el => {
+    
+                if(el.classList.contains('alter')){
+                    
+                    el.classList.remove('alter');
+                }});
+
+                        }
                         Swal.fire({
                             position: 'top-end',
                             icon: data.success ? 'success' : 'warning',
@@ -407,11 +416,48 @@
 
         // Load Modal for Amenities
         document.body.addEventListener('click', (e) => {
-            const element = e.target.closest('.load_modal');
-            if (!element) return;
+            const clicked = e.target;
+            var flag =[];
+            if(clicked.classList.contains('load_modal')){
+                
+              document.querySelectorAll('.amenity').forEach(el => {
+                if(el.classList.contains('alter')){
+                   
+                    flag.push(true);
+                }
+                 el.nextElementSibling.dataset.amenitiesCount =el.value;
+                
+              })  ;
+              
+              if(flag.includes(true)){
+                flag=[];
+                return Swal.fire({
+                position: 'top-end',
+                icon: 'error',
+                title: 'Click update to save changes first',
+                showConfirmButton: false,
+                timer: 1500
+            });
 
+              }
+            }
+            
+        
+        //      if (changed.classList.contains('alter')) {
+        //    return Swal.fire({
+        //         position: 'top-end',
+        //         icon: 'error',
+        //         title: 'Click update to save changes first',
+        //         showConfirmButton: false,
+        //         timer: 1500
+        //     });
+        //                                         }
+
+            const element = clicked.closest('.load_modal');
+            if (!element) return;
+          
             // Extract data attributes
-            const apartmentId = element.dataset.apartmentId;
+            const apartmentId = element.dataset.apartmentId;    
             const amenityId = element.dataset.amenityId;
             const blockId = element.dataset.amenityBlockId
             const amenityName = element.dataset.amenityName;
@@ -445,12 +491,12 @@
             for (let i = 0; i < inputCount; i++) {
                 const sizeValue = amenities[i]?.size || 0; // Use existing value if available
                 const sizeId = amenities[i]?.amenity_size_id|| 0;
+                console.log(inputCount);
                 const inputWrapper = document.createElement('div');
                 inputWrapper.className = 'mb-3 d-flex align-items-center';
                 inputWrapper.innerHTML = `
                     <label for="amenity_size_${i}" class="form-label flex-grow-1">${titleCase(amenityName)} ${i + 1} Size</label>
                     <input type="number" step="0.01" class="form-control me-2" id="amenity_size_${i}" name="amenity_sizes[${i}]" value="${sizeValue}" min="0" required>
-                     <button type="button" class="btn btn-danger remove-input"><i class="fa fa-times"></i></button>
                     <input type="hidden" class="form-control me-2" id="amenity_size_${i}" name="amenity_size_id[${i}]" value="${sizeId}" min="1" required>
                       <input type="hidden" class="form-control me-2" id="amenity_name_${i}" name="amenity_name[${i}]" value="${amenityName}" required>
                        <input type="hidden" class="form-control me-2" id="amenity_block_${i}" name="amenity_block_id[${i}]" value="${blockId}" required>
@@ -494,11 +540,24 @@
             const modal = new bootstrap.Modal(document.getElementById('amenitySizeModal'));
             modal.show();
         });
+document.querySelectorAll('.amenity').forEach(el => {
+  el.addEventListener('change', () => syncDataset(el));
+});
+
+function syncDataset(el) {
+    el.classList.add("alter"); 
+    return;
+ 
+}
+
+
+
 
         // Function to convert text to Title Case
         function titleCase(str) {
             return str.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
         }
+       
     });
 </script>
 
