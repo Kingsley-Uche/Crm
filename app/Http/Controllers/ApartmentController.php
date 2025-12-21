@@ -46,14 +46,14 @@ if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains
             'property_ref' => 'required|string|min:1',
             'ownership' => 'required|string|min:1',
             'admin_unit' => 'required|string|min:1',
-            'unit_name' => 'required|string|min:1',
+            'unit_number' => 'required|string|min:1',
             'post_code' => 'required|string|min:1',
             'address'=>'required|string',
             'amenities' => 'required|array',
             'amenities.*.id' => 'required|exists:amenities,id',
             'amenities.*.quantity' => 'required|integer|min:0',
         ]);
-
+        
         try {
             // Start a database transaction
             return DB::transaction(function () use ($validated) {
@@ -72,7 +72,7 @@ if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains
                     'property_ref' => $validated['property_ref'],
                     'ownership' => $validated['ownership'],
                     'admin_unit' => $validated['admin_unit'],
-                    'unit_number' => $validated['unit_name'],
+                    'unit_number' => $validated['unit_number'],
                     'post_code' => $validated['post_code'],
                     'address'=>$validated['address'],
                 ]);
@@ -88,6 +88,7 @@ if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains
 
                     if ($shelterAmenity) {
                         $shelterAmenity->update(['amenity_number' => $amenity['quantity']]);
+
                     } else {
                         throw ValidationException::withMessages([
                             'amenities' => "Amenity ID {$amenity['id']} does not exist for this apartment.",
@@ -145,57 +146,146 @@ private function ApartmentInfoUpdate($apartment_id, $data)
 {
     return ApartmentInfo::where('apartment_id', $apartment_id)->update($data);
 }
- public function UpdateAmenitySize(Request $request)
+//  public function UpdateAmenitySize(Request $request)
+// {
+    
+//     // Validate the incoming data
+//     $validated = $request->validate([
+//         'amenity_sizes' => 'required|array',
+//         'amenity_sizes.*' => 'required|numeric', // Each amenity_size must be a number
+//         'amenity_size_id' => 'required|array',
+//         'amenity_size_id.*' => 'sometimes|integer', // Each amenity_size_id must be an integer
+//         'apartment_id' => 'required|integer',
+//         'shelter_id' => 'required|integer',
+//         'amenity_id' => 'required|integer',
+//         'amenity_name'=>'required|array',
+//         'amenity_name.*'=>'sometimes|string',
+//         'amenity_block_id'=>'required|integer',
+//     ]);
+
+
+//      $user = Session::get('user');
+//         $permissions = Session::get('permissions');
+
+//         if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'update_apartments')))) {
+//             return redirect()->back()->with('error', 'Unauthorized access to apartments.');
+//         }
+//     //correct this to delete records in amenitysize with any id given in amenity_size and create new records with the data supplied
+//     //make it fast for 10k users
+//     foreach ($validated['amenity_sizes'] as $index => $sizeId) {
+    
+//         // Check if the amenity_size_id exists in the database
+//         if(!isset($validated['amenity_size_id'][$index]) ){
+//              $amenitySize = AmenitySize::where('id', $validated['amenity_size_id'][$index])
+//             ->where('apartment_id', $validated['apartment_id'])
+//             ->where('shelter_id', $validated['shelter_id'])
+//             ->where('amenity_id', $validated['amenity_id'])
+//             ->first();
+//              if ($amenitySize) {
+//             // If the amenity_size_id exists, update the existing record
+//             $amenitySize->amenity_size = $validated['amenity_sizes'][$index];
+            
+              
+//             $amenitySize->save();
+
+            
+           
+//         } 
+
+//         }else{
+        
+        
+//             //create a new amenity size
+//          AmenitySize::Create(
+//                 [
+//                     'amenity_size'=>$validated['amenity_sizes'][$index],
+//                     'amenity_name'=>$validated['amenity_name'][$index],
+//                     'amenity_id'=>(int)$validated['amenity_id'],
+//                     'apartment_id'=>(int)$validated['apartment_id'],
+//                     'block_models_id'=>(int)$validated['amenity_block_id'],
+//                     'shelter_id'=>(int)$validated['shelter_id']
+//                 ]
+//                 );
+//         }
+       
+
+       
+//     }
+//     // Return a JSON response indicating success
+//     return response()->json([
+//         'message' => 'Amenity size(s) updated successfully.',
+//         'success' => true,
+//         'count_amenity_modal'=>true,
+//     ]);
+// }
+public function updateAmenitySize(Request $request)
 {
-    // Validate the incoming data
     $validated = $request->validate([
-        'amenity_sizes' => 'required|array',
-        'amenity_sizes.*' => 'required|numeric', // Each amenity_size must be a number
-        'amenity_size_id' => 'required|array',
-        'amenity_size_id.*' => 'required|integer', // Each amenity_size_id must be an integer
-        'apartment_id' => 'required|integer',
-        'shelter_id' => 'required|integer',
-        'amenity_id' => 'required|integer',
+        'amenity_sizes'      => 'required|array',
+        'amenity_sizes.*'    => 'required|numeric',
+
+        'amenity_size_id'    => 'nullable|array',
+        'amenity_size_id.*'  => 'integer',
+
+        'amenity_name'       => 'required|array',
+        'amenity_name.*'     => 'required|string',
+
+        'apartment_id'       => 'required|integer',
+        'shelter_id'         => 'required|integer',
+        'amenity_id'         => 'required|integer',
+        'amenity_block_id'   => 'required|integer',
     ]);
 
+    /** AUTHORIZATION */
+    $user = Session::get('user');
+    $permissions = Session::get('permissions');
 
-     $user = Session::get('user');
-        $permissions = Session::get('permissions');
-
-        if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'update_apartments')))) {
-            return redirect()->back()->with('error', 'Unauthorized access to apartments.');
-        }
-    foreach ($validated['amenity_sizes'] as $index => $sizeId) {
-        // Check if the amenity_size_id exists in the database
-        $amenitySize = AmenitySize::where('id', $sizeId)
-            ->where('apartment_id', $validated['apartment_id'])
-            ->where('shelter_id', $validated['shelter_id'])
-            ->where('amenity_id', $validated['amenity_id'])
-            ->first();
-
-        if ($amenitySize) {
-            // If the amenity_size_id exists, update the existing record
-            $amenitySize->amenity_size = $validated['amenity_sizes'][$index];
-            $amenitySize->save();
-        } else {
-            // If the amenity_size_id doesn't exist, create a new record
-            AmenitySize::create([
-                'amenity_size' => $validated['amenity_sizes'][$index],
-                'amenity_name' => 'Some Name', // Replace with actual name if needed
-                'amenity_id' => $validated['amenity_id'],
-                'apartment_id' => $validated['apartment_id'],
-                'shelter_id' => $validated['shelter_id'],
-                'block_models_id' => 1, // Replace with actual block model ID if needed
-            ]);
-        }
+    if (
+        !$user ||
+        (
+            !$user->system_admin &&
+            (!$permissions || !$permissions->contains('slug', 'update_apartments'))
+        )
+    ) {
+        return redirect()->back()->with('error', 'Unauthorized access to apartments.');
     }
 
-    // Return a JSON response indicating success
+    DB::transaction(function () use ($validated) {
+return response()->json([$validated],422);
+        /** 1️⃣ DELETE EXISTING RECORDS */
+        if (!empty($validated['amenity_size_id'])) {
+            AmenitySize::whereIn('id', $validated['amenity_size_id'])
+                ->where('apartment_id', $validated['apartment_id'])
+                ->where('shelter_id', $validated['shelter_id'])
+                ->where('amenity_id', $validated['amenity_id'])
+                ->where('block_models_id', $validated['amenity_block_id'])
+                ->delete();
+        }
+
+        /** 2️⃣ PREPARE BULK INSERT DATA */
+        $insertData = [];
+
+        foreach ($validated['amenity_sizes'] as $index => $size) {
+            $insertData[] = [
+                'amenity_size'     => $size,
+                'amenity_name'     => $validated['amenity_name'][$index],
+                'amenity_id'       => (int) $validated['amenity_id'],
+                'apartment_id'     => (int) $validated['apartment_id'],
+                'block_models_id'  => (int) $validated['amenity_block_id'],
+                'shelter_id'       => (int) $validated['shelter_id'],
+                'created_at'       => now(),
+                'updated_at'       => now(),
+            ];
+        }
+return response()->json([$insertData],422);
+        /** 3️⃣ BULK INSERT (FAST) */
+        AmenitySize::insert($insertData);
+    });
+
     return response()->json([
-        'message' => 'Amenity size updated successfully.',
         'success' => true,
-        'count_amenity_modal'=>$count,
-        ''
+        'message' => 'Amenity sizes updated successfully.',
+        'count_amenity_modal' => true,
     ]);
 }
 
@@ -219,6 +309,7 @@ public function index($block_id, $shelter_id)
 
     // Cache static data
     $amenities = Cache::remember('amenities_list', 3600, fn () => Amenities::all());
+
     $pay_freq = Cache::remember('payment_time_list', 3600, fn () => PaymentTime::all());
     $tenancyTypes = Cache::remember('tenancy_types', 3600, fn () => TenancyTypeModel::all());
 
@@ -231,6 +322,7 @@ public function index($block_id, $shelter_id)
     if (!$blockShelter) {
         return redirect()->back()->with('error', 'No block shelter found for the specified block and shelter.');
     }
+    
 
     // Fetch apartments with pagination
     $apartments = ApartmentIdentity::where('shelter_id', $shelter_id)
@@ -253,7 +345,7 @@ public function index($block_id, $shelter_id)
         ->where('block_models_id', $block_id)
         ->where('block_shelter_id', $shelter_id)
         ->get()->map(function ($shelterAmenity) use ($blockShelter) {
-            $amenity = $shelterAmenity->amenity;
+            $amenity = $shelterAmenity->amenities;
             if (!$amenity) return [];
 
             return [
@@ -276,8 +368,8 @@ public function index($block_id, $shelter_id)
                 })->toArray(),
             ];
         })->filter()->values();
-
     // Choose view
+    
     $viewName = !$amenity_apartment->isEmpty() ? 'layouts.apartment.edit' : 'layouts.apartment.index';
     return view($viewName, [
         'blockShelter' => $blockShelter,

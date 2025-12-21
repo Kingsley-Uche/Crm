@@ -108,7 +108,7 @@
                                         <select class="form-select" id="pay_freq_name_{{ $apartment->id }}" name="pay_freq_id" required>
                                             <option value="">Select frequency</option>
                                             @foreach($pay_time as $pay_t)
-                                                <option value="{{ $pay_t->id }}" {{ $apartment->pay_freq_id == $pay_t->id ? 'selected' : '' }}>
+                                                <option value="{{ $pay_t->id }}" {{ $apartment->pay_frequency_id == $pay_t->id ? 'selected' : '' }}>
                                                     {{ ucfirst($pay_t->payment_frequency) }}
                                                 </option>
                                             @endforeach
@@ -192,15 +192,19 @@
                                 </div>
                                 <div class="row">
                                     <div class="col-md-12 mb-3">
-                                        <label for="unit_name_{{ $apartment->id }}" class="form-label">Address</label>
+                                        <label for="address_{{ $apartment->id }}" class="form-label">Address</label>
                                         <input type="text" 
-                                               id="unit_name_{{ $apartment->id }}" 
-                                               name="unit_name" 
-                                               placeholder="Unique unit name" 
+                                               id="address_{{ $apartment->id }}" 
+                                               name="address" 
+                                               placeholder="Address" 
                                                class="form-control" 
                                                value="{{ $apartment->address ?? '' }}"
                                                required>
                                     </div>
+                                   <div class="col-md-12 mb-2">
+                                            <label for="unit_number_{{ $apartment->id }}" class="form-label">Unit number </label>
+                                            <input type="unit_number" id="unit_number_{{ $apartment->id }}" name="unit_number" placeholder="Enter the unit number eg 10" class="form-control" value="{{ $apartment->unit_number ?? old('unit_number') }}">
+                                        </div>
                                 </div>
                             </div>
 

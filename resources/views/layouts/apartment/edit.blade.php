@@ -50,8 +50,7 @@
     <!-- Blocks Container -->
     <div class="row" id="apartments-container">
     @foreach($apartments as $index => $apartment)
-        @foreach($apart_info as $apart)
-            @if($apartment->id === $apart->apartment_id)
+    
                 <div class="col-md-4">
                     <div class="card">
                         <h6 class="card-header text-center">
@@ -94,33 +93,38 @@
                                             <select class="form-select" id="tenancy_type_{{ $apartment->id }}" name="tenancy_type" required>
                                                 <option value="">Select Tenancy Type</option>
                                                 @foreach($tenancy_type as $type)
-                                                    <option value="{{ $type->name }}" {{ $apart->tenancy_type == $type->name ? 'selected' : '' }}>{{ ucfirst($type->name) }}</option>
+                                                    <option value="{{ $type->name }}" {{ $apartment->tenancy_type == $type->name ? 'selected' : '' }}>{{ ucfirst($type->name) }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
                                         <div class="col-md-6 mb-2">
                                             <label for="property_score_code_{{ $apartment->id }}" class="form-label">Property Score</label>
-                                            <input type="text" id="property_score_code_{{ $apartment->id }}" name="pro_sco_code" placeholder="Property score" class="form-control" value="{{ $apart->pro_sco_code ?? old('pro_sco_code') }}">
+                                            <input type="text" id="property_score_code_{{ $apartment->id }}" name="pro_sco_code" placeholder="Property score" class="form-control" value="{{ $apartment->pro_sco_code ?? old('pro_sco_code') }}">
                                         </div>
                                         <div class="col-md-6 mb-2">
                                             <label for="ownership_{{ $apartment->id }}" class="form-label">Ownership</label>
-                                            <input type="text" id="ownership_{{ $apartment->id }}" name="ownership" placeholder="Ownership" class="form-control" value="{{ $apart->ownership ?? old('ownership') }}">
+                                            <input type="text" id="ownership_{{ $apartment->id }}" name="ownership" placeholder="Ownership" class="form-control" value="{{ $apartment->ownership ?? old('ownership') }}">
                                         </div>
                                         <div class="col-md-6 mb-2">
                                             <label for="admin_unit_{{ $apartment->id }}" class="form-label">Admin Unit</label>
-                                            <input type="text" id="admin_unit_{{ $apartment->id }}" name="admin_unit" placeholder="Admin unit" class="form-control" value="{{ $apart->admin_unit ?? old('admin_unit') }}">
+                                            <input type="text" id="admin_unit_{{ $apartment->id }}" name="admin_unit" placeholder="Admin unit" class="form-control" value="{{ $apartment->admin_unit ?? old('admin_unit') }}">
                                         </div>
                                         <div class="col-md-6 mb-2">
                                             <label for="post_code_{{ $apartment->id }}" class="form-label">Post Code</label>
-                                            <input type="text" id="post_code_{{ $apartment->id }}" name="post_code" placeholder="Post Code" class="form-control" value="{{ $apart->post_code ?? old('post_code') }}">
+                                            <input type="text" id="post_code_{{ $apartment->id }}" name="post_code" placeholder="Post Code" class="form-control" value="{{ $apartment->post_code ?? old('post_code') }}">
                                         </div>
                                         <div class="col-md-6 mb-2">
                                             <label for="property_ref_{{ $apartment->id }}" class="form-label">Property Ref</label>
-                                            <input type="text" id="property_ref_{{ $apartment->id }}" name="property_ref" placeholder="Property Ref" class="form-control" value="{{ $apart->property_ref ?? old('property_ref') }}">
+                                            <input type="text" id="property_ref_{{ $apartment->id }}" name="property_ref" placeholder="Property Ref" class="form-control" value="{{ $apartment->property_ref ?? old('property_ref') }}">
                                         </div>
                                         <div class="col-md-12 mb-2">
-                                            <label for="unit_name_{{ $apartment->id }}" class="form-label">Unit Name</label>
-                                            <input type="text" id="unit_name_{{ $apartment->id }}" name="unit_name" placeholder="Unit Name" class="form-control" value="{{ $apart->unit_name ?? old('unit_name') }}">
+                                            <label for="address_{{ $apartment->id }}" class="form-label">Address </label>
+                                            <input type="text" id="address_{{ $apartment->id }}" name="address" placeholder="Address" class="form-control" value="{{ $apartment->address ?? old('address') }}">
+                                             <input type ='hidden' name ='unit_number' value ='{{$blockShelter->block->name}}'>
+                                        </div>
+                                        <div class="col-md-12 mb-2">
+                                            <label for="unit_number_{{ $apartment->id }}" class="form-label">Unit number </label>
+                                            <input type="unit_number" id="unit_number_{{ $apartment->id }}" name="unit_number" placeholder="Enter the unit number like 10" class="form-control" value="{{ $apartment->unit_number ?? old('unit_number') }}">
                                         </div>
                                     </div>
                                 </div>
@@ -132,8 +136,11 @@
                                         @foreach($amenity_apartment as $amen)
                                             @php
                                                 $isApartmentMatch = $amen['amenity_apart_id'] === $apartment->id;
+                                                
+                                                
+                                                
                                             @endphp
-
+                                                                            
                                             @if($isApartmentMatch)
                                                 @php
                                                     // Filter amenities that match the apartment ID and amenity ID
@@ -141,12 +148,13 @@
                                                         $info['apartment_id'] === $apartment->id && 
                                                         $info['amenity_id'] === $amen['amenity_id']
                                                     );
+                                                   
 
                                                     // Ensure the array has a zero-based index
                                                     $matchingAmenitiesArray = array_values($matchingAmenities->toArray());
 
-                                                    // Count only those with size > 1
-                                                    $amenityCount = collect($matchingAmenitiesArray)->filter(fn($info) => $info['size'] > 1)->count();
+                                                    // Count only those with size > 1   
+                                                    $amenityCount = (int)$amen['amenity_number'];
                                                     
                                                     // If no size > 1, set to zero for those with size <= 1
                                                     if ($amenityCount === 0) {
@@ -169,13 +177,14 @@
                                                                min="0" placeholder="Qty"
                                                                data-amenity-id="{{ $amen['amenity_id'] }}"
                                                                data-apartment-id="{{ $apartment->id }}"
-                                                               data-amenity-name="{{ $amen['amenity_name'] }}" required readonly>
+                                                               data-amenity-name="{{ $amen['amenity_name'] }}" required>
                                                         <i class="fas fa-pen load_modal btn bg-light"  
                                                            data-amenity-id="{{ $amen['amenity_id'] }}"
                                                            data-apartment-id="{{ $apartment->id }}"
                                                            data-amenity-name="{{ $amen['amenity_name'] }}"
                                                            data-matching-amenities="{{ json_encode($matchingAmenitiesArray) }}"
-                                                           data-matching-amenities-count="{{ $amenityCount }}"
+                                                           data-amenities-count="{{ $amenityCount }}"
+                                                           data-amenity-block-id="{{$apartment->block_models_id }}"
                                                            data-shelter-id="{{ $apartment->shelter_id}}"></i>
                                                     </div>
                                                 </div>
@@ -186,16 +195,16 @@
 
                                 <!-- Navigation Buttons -->
                                 <div class="d-flex justify-content-between mt-3">
-                                    <button type="button" class="btn btn-secondary wizard-prev" style="display: none;"><i class="fa fa-arrow-left"></i> Previous</button>
-                                    <button type="button" class="btn btn-info wizard-next">Next <i class="fa fa-arrow-right"></i></button>
-                                    <button type="submit" class="btn btn-success wizard-submit" style="display: none;">Update <i class="fa fa-arrow-circle-up"></i></button>
+                                    <button type="button" class="btn btn-secondary wizard-prev" style="display: none;"><i class="fa fa-arrow-left text-white"></i> Previous</button>
+                                    <button type="button" class="btn btn-info wizard-next">Next <i class="fa fa-arrow-right text-white"></i></button>
+                                    <button type="submit" class="btn btn-success wizard-submit" style="display: none;">Update <i class="fa fa-arrow-circle-up text-white"></i></button>
                                 </div>
                             </form>
                         </div>
                     </div> 
                 </div>
-            @endif
-        @endforeach
+
+        
     @endforeach
 </div>
 
@@ -223,9 +232,10 @@
                     <input type="hidden" name="apartment_id" id="modal-apartment-id">
                     <input type="hidden" name="shelter_id" id="modal-shelter-id">
                     <input type="hidden" name="amenity_id" id="modal-amenity-id">
+                    <input type="hidden" name="amenity_block_id" id="modal-amenityblock-id">
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Submit Sizes</button>
+                        <button type="submit" class="btn btn-success">Submit Sizes</button>
                     </div>
                 </form>
             </div>
@@ -376,7 +386,7 @@
                 if (data.success) {
                     bootstrap.Modal.getInstance(document.getElementById('amenitySizeModal'))?.hide();
                     if(data.count_amenity_modal){
-                        window.location.reload(true);
+                        return;
                         
                     }
                 }
@@ -403,10 +413,11 @@
             // Extract data attributes
             const apartmentId = element.dataset.apartmentId;
             const amenityId = element.dataset.amenityId;
+            const blockId = element.dataset.amenityBlockId
             const amenityName = element.dataset.amenityName;
+            const amenityCount= element.dataset.amenitiesCount;
             const matchingAmenitiesCount = parseInt(element.dataset.matchingAmenitiesCount || '0', 10);
              const shelterId = element.dataset.shelterId;
-
             // Parse matching amenities safely
             let amenities = [];
             try {
@@ -415,55 +426,61 @@
                 console.error('Error parsing amenities:', error);
             }
 
-            console.log({ apartmentId, amenityId, amenityName, amenities, matchingAmenitiesCount, shelterId });
+            //console.log({ apartmentId, amenityId, amenityName, amenities, matchingAmenitiesCount, shelterId });
 
             // Ensure elements exist before setting values
             document.getElementById('modal-apartment-id')?.setAttribute('value', apartmentId);
             document.getElementById('modal-amenity-id')?.setAttribute('value', amenityId);
              document.getElementById('modal-shelter-id')?.setAttribute('value', shelterId);
+              document.getElementById('modal-amenityblock-id')?.setAttribute('value', blockId);
 
             // Generate input fields for amenity sizes
             const modalBody = document.getElementById('amenitySizeInputs');
             modalBody.innerHTML = '';
 
-            let inputCount = amenities.length > 0 ? amenities.length : 1;
+            let inputCount = amenityCount> 0 ?amenityCount : 1;
+        
             let inputCounter = inputCount;
 
             for (let i = 0; i < inputCount; i++) {
-                const sizeValue = amenities[i]?.size || ''; // Use existing value if available
-                const sizeId = amenities[i]?.amenity_size_id|| '';
+                const sizeValue = amenities[i]?.size || 0; // Use existing value if available
+                const sizeId = amenities[i]?.amenity_size_id|| 0;
                 const inputWrapper = document.createElement('div');
                 inputWrapper.className = 'mb-3 d-flex align-items-center';
                 inputWrapper.innerHTML = `
                     <label for="amenity_size_${i}" class="form-label flex-grow-1">${titleCase(amenityName)} ${i + 1} Size</label>
-                    <input type="number" step="0.01" class="form-control me-2" id="amenity_size_${i}" name="amenity_sizes[${i}]" value="${sizeValue}" min="1" required>
-                    <input type="number" class="form-control me-2" id="amenity_size_${i}" name="amenity_size_id[${i}]" value="${sizeId}" min="1" required>
-                `;
+                    <input type="number" step="0.01" class="form-control me-2" id="amenity_size_${i}" name="amenity_sizes[${i}]" value="${sizeValue}" min="0" required>
+                     <button type="button" class="btn btn-danger remove-input"><i class="fa fa-times"></i></button>
+                    <input type="hidden" class="form-control me-2" id="amenity_size_${i}" name="amenity_size_id[${i}]" value="${sizeId}" min="1" required>
+                      <input type="hidden" class="form-control me-2" id="amenity_name_${i}" name="amenity_name[${i}]" value="${amenityName}" required>
+                       <input type="hidden" class="form-control me-2" id="amenity_block_${i}" name="amenity_block_id[${i}]" value="${blockId}" required>
+             
+                         `;
 
                 modalBody.appendChild(inputWrapper);
             }
 
-            // Add a plus button to allow dynamic input addition
-            const addButton = document.createElement('button');
-            addButton.className = 'btn btn-primary mt-2';
-            addButton.innerHTML = `<i class="fa fa-plus"></i> Add Size`;
-            addButton.type = 'button';
+            // // Add a plus button to allow dynamic input addition
+            // const addButton = document.createElement('button');
+            // addButton.className = 'btn btn-success mt-2';
+            // addButton.innerHTML = `<i class="fa fa-plus"></i> Add Size`;
+            // addButton.type = 'button';
 
-            modalBody.appendChild(addButton);
+            // modalBody.appendChild(addButton);
 
             // Event Listener for Adding Input Fields
-            addButton.addEventListener('click', () => {
-                const newInputWrapper = document.createElement('div');
-                newInputWrapper.className = 'mb-3 d-flex align-items-center';
-                newInputWrapper.innerHTML = `
-                    <label for="amenity_size_${inputCounter}" class="form-label flex-grow-1">${titleCase(amenityName)} ${inputCounter + 1} Size</label>
-                    <input type="number" class="form-control me-2" id="amenity_size_${inputCounter}" name="amenity_sizes[${inputCounter}]" min="1" required>
-                    <button type="button" class="btn btn-danger remove-input"><i class="fa fa-times"></i></button>
-                `;
+            // addButton.addEventListener('click', () => {
+            //     const newInputWrapper = document.createElement('div');
+            //     newInputWrapper.className = 'mb-3 d-flex align-items-center';
+            //     newInputWrapper.innerHTML = `
+            //         <label for="amenity_size_${inputCounter}" class="form-label flex-grow-1">${titleCase(amenityName)} ${inputCounter + 1} Size</label>
+            //         <input type="number" class="form-control me-2" id="amenity_size_${inputCounter}" name="amenity_sizes[${inputCounter}]" min="1" required>
+            //         <button type="button" class="btn btn-danger remove-input"><i class="fa fa-times"></i></button>
+            //     `;
 
-                modalBody.insertBefore(newInputWrapper, addButton);
-                inputCounter++;
-            });
+            //     modalBody.insertBefore(newInputWrapper, addButton);
+            //     inputCounter++;
+            // });
 
             // Event Listener for Removing Input Fields (Delegation)
             modalBody.addEventListener('click', (e) => {
