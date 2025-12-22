@@ -35,7 +35,7 @@ public function RentReport(Request $request)
     $rent_accounts = RentAccount::with([
         'rentCycles:id,rent_account_id,apartment_id,tenant_id,rent_fee,payment_method,payment_made,start_date,end_date',
         'apartment:id,tenancy_type,pro_sco_code,property_ref,ownership,admin_unit,address,post_code,unique_code',
-        'tenant:id,first_name,last_name,occupant_email,mobile_number,home_number'
+        'tenant:id,full_name,occupant_email,mobile_number,home_number'
     ])
     ->select('id', 'tenant_id', 'apartment_id', 'unit_number', 'start_date', 'account_type', 'status')
     ->where('status', 'active')
@@ -68,8 +68,7 @@ public function RentReport(Request $request)
                 'unique_code' => $apartment->unique_code ?? '',
 
                 // Tenant info
-                'first_name' => $tenant->first_name ?? '',
-                'last_name' => $tenant->last_name ?? '',
+                'full_name' => $tenant->full_name ?? '',
                 'occupant_email' => $tenant->occupant_email ?? '',
                 'mobile_number' => $tenant->mobile_number ?? '',
                 'home_number' => $tenant->home_number ?? '',

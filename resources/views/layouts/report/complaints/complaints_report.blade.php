@@ -77,7 +77,7 @@
                                 <td>{{ ucwords($complaint->block->name ?? 'N/A') }}</td>
                                 <td>{{ $complaint->apartment_id ?? 'N/A' }}</td>
                                 <td>{{ $complaint->unit_number ?? 'N/A' }}</td>
-                                <td>{{ ucwords($complaint->tenant->first_name ?? '') }} {{ $complaint->tenant->last_name ?? '' }}</td>
+                                <td>{{ ucwords($complaint->tenant->full_name) }}</td>
                                 <td>{{ $complaint->phone ?? 'N/A' }}</td>
                                 <td>{{ $complaint->email ?? 'N/A' }}</td>
                                 <td>{{ $complaint->subject ?? 'N/A' }}</td>

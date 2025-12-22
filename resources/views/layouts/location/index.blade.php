@@ -45,7 +45,7 @@
                             @forelse($locations as $index => $location)
                                 <tr>
                                     <th scope="row">{{ $index + 1 }}</th>
-                                    <td>{{ $location->name }}</td>
+                                    <td>{{ ucwords($location->name) }}</td>
                                     <td>
                                         <a href="{{ route('locations.edit', $location->id) }}" class="btn btn-sm" title="Edit">
                                             <i class="fa fa-pen text-success"></i>

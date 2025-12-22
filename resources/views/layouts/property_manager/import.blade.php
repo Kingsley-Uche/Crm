@@ -40,7 +40,7 @@
                             <h4>Drop files here or click to upload.</h4>
                             
                         </div>
-                        <button class='btn btn-success' type ='submit'> submit</button>
+                      
                     </form>
                 </div>
 
@@ -59,5 +59,5 @@
 @endsection
 
 @section('scripts')
-<!-- <script src="{{ asset('assets/libs/dropzone/min/dropzone.min.js') }}"></script> -->
+<script src="{{ asset('assets/libs/dropzone/min/dropzone.min.js') }}"></script>
 @endsection

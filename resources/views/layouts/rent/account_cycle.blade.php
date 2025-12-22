@@ -77,7 +77,7 @@
         <td>{{ optional($account->apartment)->property_ref ?? '-' }}</td>
 
         <td>
-            {{ trim(($account->tenant->first_name ?? '-') . ' ' . ($account->tenant->last_name ?? '')) }}
+            {{ trim(($account->tenant->full_name ?? '-')) }}
         </td>
 
         <td>{{ $account->tenant->occupant_email ?? '-' }}</td>

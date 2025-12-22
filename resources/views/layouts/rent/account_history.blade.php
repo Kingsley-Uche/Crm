@@ -78,7 +78,7 @@
                                         @endif
                                     </td>
                                     <td>{{ $account->Apartment?->property_ref ?? '-' }}</td>
-                                    <td>{{ $account->Tenant?->first_name ?? '-' }} {{ $account->Tenant?->last_name ?? '' }}</td>
+                                    <td>{{ $account->Tenant?->full_name ??  }}</td>
                                     <td>{{ $account->Tenant?->occupant_email ?? '-' }}</td>
                                     <td>{{ $account->unit_number }}</td>
                                     <td><br>

@@ -5,6 +5,7 @@ namespace App\Exceptions;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
+use Illuminate\Http\Request;
 
 class Handler extends ExceptionHandler
 {
@@ -30,15 +31,14 @@ class Handler extends ExceptionHandler
     }
 
     // This is the key method to customize
-    protected function unauthenticated($request, AuthenticationException $exception)
-    {
-        dd($request);
-        // Check if the route prefix is 'admin'
-        if ($request->is('admin') || $request->is('admin/*')) {
-            return redirect()->guest(route('admin.login'));
-        }
-
-        // Default fallback
-        return redirect()->guest('/login');
+   protected function unauthenticated(
+    Request $request,
+    AuthenticationException $exception
+) {
+    if ($request->is('admin') || $request->is('admin/*')) {
+        return redirect()->guest(route('admin.login'));
     }
+
+    return redirect()->guest('/login');
+}
 }

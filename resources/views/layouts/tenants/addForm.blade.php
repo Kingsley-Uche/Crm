@@ -69,15 +69,15 @@
                             
                             <!-- First Name -->
                             <div class="row mb-3">
-                                <label for="first_name" class="col-sm-3 col-form-label">
+                                <label for="full_name" class="col-sm-3 col-form-label">
                                     First Name <span class="text-danger">*</span>
                                 </label>
                                 <div class="col-sm-9">
-                                    <input type="text" name="first_name" id="first_name" 
-                                           class="form-control @error('first_name') is-invalid @enderror" 
-                                           value="{{ old('first_name') }}" 
-                                           placeholder="Enter first name" required>
-                                    @error('first_name')
+                                    <input type="text" name="full_name" id="full_name" 
+                                           class="form-control @error('full_name') is-invalid @enderror" 
+                                           value="{{ old('full_name') }}" 
+                                           placeholder="Enter full name" required>
+                                    @error('full_name')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>

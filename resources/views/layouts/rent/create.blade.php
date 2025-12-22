@@ -106,7 +106,7 @@
                                 @foreach($tenants as $tenant)
                                     <option value="{{ $tenant->id }}"
                                         {{ old('tenant_id') == $tenant->id ? 'selected' : '' }}>
-                                        {{ ucwords($tenant->first_name . ' ' . $tenant->last_name) }}
+                                        {{ ucwords($tenant->full_name) }}
                                     </option>
                                 @endforeach
                             </select>

@@ -65,7 +65,7 @@
                     <tbody>
                             @foreach($fobs as $fob)
                                 <tr>
-                                    <td>{{ $fob->tenant->first_name ?? '-' }} {{ $fob->tenant->last_name ?? '' }}</td>
+                                    <td>{{ $fob->tenant->full_name ?? '-' }}</td>
                                     <td>{{ $fob->fob_uid }}</td>
                                     <td>{{ $fob->make }}</td>
                                     <td>{{ $fob->model }}</td>

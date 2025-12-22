@@ -165,7 +165,7 @@ public function accomBlock(Request $request)
 
     // Fetch tenants once, avoiding unnecessary fetches
     $tenants = Cache::remember('tenants_list', now()->addHour(), function () {
-        return Tenants::select('id', 'first_name', 'last_name')->get();
+        return Tenants::select('id', 'full_name')->get();
     });
 
     // Then pass to view

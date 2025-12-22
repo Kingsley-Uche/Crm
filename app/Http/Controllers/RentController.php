@@ -45,7 +45,7 @@ class RentController extends Controller
             return redirect()->back()->with('error', 'Unauthorized access to rent creation.');
         }
 
-        $tenants = Tenant::select('id', 'first_name', 'last_name', 'gender')->get();
+        $tenants = Tenant::select('id', 'full_name', 'gender')->get();
 
         $apartments = ApartmentIdentity::with([
             'shelter:id,name',
@@ -145,7 +145,7 @@ class RentController extends Controller
         $accounts = RentAccount::with([
             'rentCycles:id,rent_account_id,apartment_id,tenant_id,rent_fee,payment_method,payment_made',
             'apartment:id,tenancy_type,pro_sco_code,property_ref,ownership,admin_unit,address,post_code,unique_code',
-            'tenant:id,first_name,last_name,occupant_email,date_of_birth'
+            'tenant:id,full_name,occupant_email,date_of_birth'
         ])
         ->select('id', 'tenant_id', 'apartment_id', 'unit_number', 'start_date', 'account_type', 'status')
         ->where('status', $operator, $status)
@@ -224,7 +224,7 @@ class RentController extends Controller
 
         $rent_history = RentCycle::with([
             'Apartment:id,tenancy_type,pro_sco_code,property_ref,ownership,admin_unit,address,post_code,unique_code',
-            'Tenant:id,first_name,last_name,occupant_email,date_of_birth'
+            'Tenant:id,full_name,occupant_email,date_of_birth'
         ])
         ->select('id', 'tenant_id', 'apartment_id', 'unit_number', 'start_date', 'end_date', 'status',
             'account_type', 'duration_months', 'rent_fee', 'payment_made', 'payment_method',

@@ -47,7 +47,7 @@
                                 <td>{{ $loop->iteration + ($booked->currentPage() - 1) * $booked->perPage() }}</td>
                                 <td>{{ucfirst( $booking->shelter_name) }}</td>
                                 <td>{{ ucfirst($booking->block_address) }}</td>
-                              <td>{{ ucfirst($booking->first_name) }} {{ ucfirst(substr($booking->middle_name, 0, 1)) }}. {{ ucfirst($booking->last_name) }}</td>
+                              <td>{{ ucfirst($booking->full_name) }} {{ ucfirst(substr($booking->middle_name, 0, 1)) }}. {{ ucfirst($booking->last_name) }}</td>
                                 <td>{{ ucfirst($booking->gender) }}</td>
                                 <td>{{ $booking->nationality }}</td>
                                 <td>{{ $booking->state }}</td>
@@ -64,7 +64,7 @@
                                 <td>
                                     <form action="{{ route('booked.cancel', $booking->booking_id) }}" method="POST" class="d-inline">
                                     @csrf @method('DELETE')
-                                    <a href="{{ route('booked.cancel', $booking->booking_id) }}" class="btn btn-sm delete-btn" data-fname="{{$booking->first_name }}" data-lname="{{$booking->last_name}}" aria-label="Cancel booking">
+                                    <a href="{{ route('booked.cancel', $booking->booking_id) }}" class="btn btn-sm delete-btn" data-fname="{{$booking->full_name }}" data-lname="{{$booking->last_name}}" aria-label="Cancel booking">
                                      <i class="fas fa-times-circle text-danger" data-toggle="tooltip" title="Cancel booking"></i> 
                             </tr>
                         @endforeach

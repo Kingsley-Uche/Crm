@@ -16,7 +16,7 @@ class FobController extends Controller
         if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'read_fob')))) {
             return redirect()->back()->with('error', 'Unauthorized access to fobs.');
         }
-        $fobs = FobModel::with('tenant:id,first_name,last_name')->get();
+        $fobs = FobModel::with('tenant:id,full_name')->get();
         return view('layouts.fob.index', compact('fobs'));
     }
 

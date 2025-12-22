@@ -43,7 +43,7 @@ class ComplaintController extends Controller
                 ->get()
         );
 
-        $tenants = Tenant::select('id', 'first_name', 'last_name')->get();
+        $tenants = Tenant::select('id', 'full_name')->get();
 
         $fields = [
             
@@ -53,7 +53,7 @@ class ComplaintController extends Controller
             ['label' => 'Complainant Phone Number', 'name' => 'phone', 'type' => 'text'],
              
              ['label' => 'Tenant', 'name' => 'tenant_id', 'type' => 'select', 'options' => $tenants->map(function($t) {
-                return ['value' => $t->id, 'label' => "{$t->first_name} {$t->last_name}"];
+                return ['value' => $t->id, 'label' => "{$t->full_name}"];
             })->toArray(), 'required' => true],
              ['label' => 'Received Date', 'name' => 'received_date', 'type' => 'date', 'required' => true],
               ['label' => 'Resolution Date', 'name' => 'resolved_date', 'type' => 'date'],
@@ -134,7 +134,7 @@ class ComplaintController extends Controller
 
         $complaint = Complaint::findOrFail($id);
         $blocks = json_encode(BlockModel::with(['apartments:id,block_models_id,address,unit_number'])->select('id', 'name')->get());
-        $tenants = Tenant::select('id', 'first_name', 'last_name')->get();
+        $tenants = Tenant::select('id', 'full_name')->get();
 
        $fields = [
             ['label' => 'Subject', 'name' => 'subject', 'type' => 'text', 'required' => true],
@@ -149,7 +149,7 @@ class ComplaintController extends Controller
             ]],
             ['label' => 'Resolution Date', 'name' => 'resolved_date', 'type' => 'date'],
             ['label' => 'Tenant', 'name' => 'tenant_id', 'type' => 'select', 'options' => $tenants->map(function($t) {
-                return ['value' => $t->id, 'label' => "{$t->first_name} {$t->last_name}"];
+                return ['value' => $t->id, 'label' => "{$t->full_name}"];
             })->toArray(), 'required' => true],
             ['label' => 'Complainant Email Address', 'name' => 'email', 'type' => 'email'],
             ['label' => 'Complainant Phone Number', 'name' => 'phone', 'type' => 'text'],

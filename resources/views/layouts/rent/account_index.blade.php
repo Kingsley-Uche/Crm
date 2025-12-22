@@ -73,7 +73,7 @@
                                     <td>{{ \Carbon\Carbon::parse($account->start_date)->format('Y-m-d') }}</td>
                                     <td><span class="badge bg-{{$account->color}}">{{ ucfirst($account->status) }}</span></td>
                                     <td>{{ $account->Apartment->property_ref ?? '-' }}</td>
-                                    <td>{{ $account->Tenant->first_name ?? '-' }} {{ $account->Tenant->last_name ?? '' }}</td>
+                                    <td>{{ $account->Tenant->full_name }}</td>
                                     <td>{{ $account->Tenant->occupant_email ?? '-' }}</td>
                                     <td>{{ $account->unit_number }}</td>
                                     <td><br>

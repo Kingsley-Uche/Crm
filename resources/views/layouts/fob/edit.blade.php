@@ -39,7 +39,7 @@
                                 <option value="">-- Select Tenant --</option>
                                 @foreach($tenants as $tenant)
                                     <option value="{{ $tenant->id }}" {{ old('tenant_id', $fob->tenant_id) == $tenant->id ? 'selected' : '' }}>
-                                        {{ $tenant->first_name . ' ' . $tenant->last_name }}
+                                        {{ $tenant->full_name }}
                                     </option>
                                 @endforeach
                             </select>

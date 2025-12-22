@@ -43,9 +43,7 @@ class TenantController extends Controller
 
     $rules = [
         // Step 1: Occupant Basic Details
-        'first_name'     => 'required|string',
-        'last_name'      => 'required|string',
-        'middle_name'    => 'nullable|string',
+        'full_name'     => 'required|string',
         'date_of_birth'  => 'required|date|before:+18 years',
         'gender'         => 'required|in:male,female,other',
 
@@ -127,9 +125,7 @@ class TenantController extends Controller
          $tenant = Tenant::findOrFail(strip_tags($request->tenant_id));
         $validated = $request->validate([
             // Step 1: Occupant Basic Details
-            'first_name'     => 'required|string',
-            'last_name'      => 'required|string',
-            'middle_name'    => 'nullable|string',
+            'full_name'     => 'required|string',
             'date_of_birth'  => 'nullable|date|before:+18 years',
             'gender'         => 'required|in:male,female,other',
 

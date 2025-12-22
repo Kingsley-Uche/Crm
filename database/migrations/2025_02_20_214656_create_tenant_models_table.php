@@ -15,32 +15,30 @@ return new class extends Migration
             $table->id();
             
             // Step 1: Occupant Basic Details
-            $table->string('first_name');
-            $table->string('last_name');
-            $table->string('middle_name')->nullable();
-            $table->date('date_of_birth');
-            $table->enum('gender', ['male', 'female', 'other']);
+            $table->string('full_name');
+            $table->date('date_of_birth')->nullable();
+            $table->enum('gender', ['male', 'female', 'other'])->default('other');
             
             // Step 2: Identification Details
-            $table->string('nationality');
-            $table->string('state');
-            $table->text('address');
-            $table->enum('id_method', ['driver_licence', 'nin', 'nis', 'passport']);
-            $table->string('identification_image'); // Path to identification image
-            $table->string('passport_photograph');  // Path to passport photograph
+            $table->string('nationality')->nullable();
+            $table->string('state')->nullable();
+            $table->text('address')->nullable();
+            $table->enum('id_method', ['driver_licence', 'nin', 'nis', 'passport'])->nullable();
+            $table->string('identification_image')->nullable(); // Path to identification image
+            $table->string('passport_photograph')->nullable();  // Path to passport photograph
             
             // Step 3: Contact Details
-            $table->string('mobile_number')->unique();
+            $table->string('mobile_number')->unique()->nullable();
             $table->string('home_number')->nullable();
             $table->string('occupant_email')->unique()->nullable();
-            $table->string('emergency_contact');
+            $table->string('emergency_contact')->nullable();
             $table->string('emergency_email')->nullable();
             
             // Step 4: Guarantor Details
-            $table->string('guarantor_full_name'); 
+            $table->string('guarantor_full_name')->nullable(); 
             $table->text('guarantor_address')->nullable();
               $table->text('guarantor_email')->nullable();
-            $table->string('guarantor_phone');
+            $table->string('guarantor_phone')->nullable();
             $table->string('guarantor_passport')->nullable(); // Path to guarantor passport image
             
             $table->timestamps();

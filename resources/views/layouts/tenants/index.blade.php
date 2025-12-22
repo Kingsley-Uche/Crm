@@ -84,9 +84,7 @@
         @foreach ($tenants as $tenant)
             <tr>
                 <td>{{ $loop->iteration }}</td>
-                <td>{{ $tenant->first_name }}</td>
-                <td>{{ $tenant->middle_name ?? 'N/A' }}</td>
-                <td>{{ $tenant->last_name }}</td>
+                <td>{{ $tenant->full_name }}</td>
                 <td>{{ $tenant->date_of_birth ? $tenant->date_of_birth->format('Y-m-d') : 'N/A' }}</td>
                 <td>{{ $tenant->gender }}</td>
                 <td>{{ $tenant->nationality }}</td>
@@ -135,7 +133,7 @@
                     <a href="{{ route('occupants.edit.view', ['occupant_id' => $tenant->id]) }}">
                         <i class="fas fa-pencil-alt text-success"></i>
                     </a>
-                    <form action="{{ route('occupant.destroy', $tenant->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete {{ $tenant->first_name }} {{ $tenant->last_name }}?');">
+                    <form action="{{ route('occupant.destroy', $tenant->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete {{ $tenant->full_name }}?');">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-sm delete-btn" aria-label="Delete Tenant">

@@ -15,9 +15,7 @@ class TenantModel extends Model
     // Define the fillable attributes for mass assignment
     protected $fillable = [
         // Step 1: Occupant Basic Details
-        'first_name',
-        'last_name',
-        'middle_name',
+        'full_name',
         'date_of_birth',
         'gender',
 

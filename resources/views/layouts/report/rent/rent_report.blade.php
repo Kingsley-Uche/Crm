@@ -52,8 +52,7 @@
                             <th>End Date</th>
                             <th>Rent Fee (£)</th>
                             <th>Paid (£)</th>
-                            <th>First Name</th>
-                            <th>Last Name</th>
+                            <th>Full Name</th>
                             <th>Email</th>
                             <th>Payment Method</th>
                             <th>Address</th>
@@ -74,8 +73,7 @@
                                 <td>{{ $row['cycle_end_date'] }}</td>
                                 <td>£{{ number_format($row['rent_fee'], 2) }}</td>
                                 <td>£{{ number_format($row['payment_made'], 2) }}</td>
-                                <td>{{ $row['first_name'] }}</td>
-                                <td>{{ $row['last_name'] }}</td>
+                                <td>{{ $row['full_name'] }}</td>
                                 <td>{{ $row['occupant_email'] }}</td>
                                 <td>{{ strtoupper($row['payment_method']) }}</td>
                                 <td>{{ ucwords($row['address']) }}</td>

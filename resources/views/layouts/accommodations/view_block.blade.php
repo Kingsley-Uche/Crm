@@ -83,7 +83,7 @@
                         <select name="tenant_id" class="form-control" id="tenants" required>
                             <option value="">Select a Tenant</option>
                             @foreach($tenants as $tenant)
-                                <option value="{{ $tenant->id }}">{{ $tenant->first_name . ' ' . $tenant->last_name }}</option>
+                                <option value="{{ $tenant->id }}">{{ $tenant->full_name }}</option>
                             @endforeach
                         </select>
                     </div>
