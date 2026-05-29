@@ -5,6 +5,7 @@
     <meta name="description" content="CTR Dashboard" />
     <meta name="author" content="Kamma Uche" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    
 
     <!-- Favicon -->
 <!-- Favicon -->
@@ -52,16 +53,16 @@ body[data-sidebar=colored].vertical-collpsed .vertical-menu #sidebar-menu ul>li>
 body[data-sidebar=dark].vertical-collpsed .vertical-menu #sidebar-menu ul>li>a.mm-active i,
 .mm-active > a,
 .mm-active .active i{
-  color: #00b300 !important; /* Or your desired green color */
+  color: #074784 !important; /* Or your desired green color */
 }
 
 .topnav .navbar-nav .nav-item .nav-link.active,
 .topnav .navbar-nav .dropdown-item.active{
-    color: #00b300;
+    color: #074784;
 }
 
 .bg-success,.btn-success {
-    background-color: #77c44e !important;
+    background-color: #074784 !important;
     color: white; /* Optional: to ensure contrast */
 }
 

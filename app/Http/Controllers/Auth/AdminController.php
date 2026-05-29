@@ -9,23 +9,68 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Models\AdminModel;
 use App\Mail\AdminPasswordReset;
+use App\Models\BrandModel;
 
 class AdminController extends Controller
 {
     protected $redirectTo = 'admin/dashboard';
 
-    public function __construct()
-    {
-        //$this->middleware('guest:admin')->only(['showLoginForm', 'login', 'passwordReset', 'emailPassword']);
-        $this->middleware('auth:admin')->only('logout');
+  public function __construct()
+{
+    // Load brand details and cache for 5 hours, store in session
+
+    if (!session()->has('brand_details')) {
+
+        $brand = BrandModel::first();
+    
+
+        if ($brand) {
+
+            $brandData = [
+                'name' => $brand->name,
+                'description' => $brand->description,
+                'logo_url' => $brand->logo_url,
+                'website_url' => $brand->website_url,
+                'contact_email' => $brand->contact_email,
+                'contact_phone' => $brand->contact_phone,
+                'address' => $brand->address,
+
+                // SEO
+                'meta_title' => $brand->meta_title,
+                'meta_description' => $brand->meta_description,
+                'meta_keywords' => $brand->meta_keywords,
+
+                // OG
+                'og_title' => $brand->og_title,
+                'og_description' => $brand->og_description,
+                'og_image' => $brand->og_image,
+
+                // Twitter
+                'twitter_title' => $brand->twitter_title,
+                'twitter_description' => $brand->twitter_description,
+                'twitter_image' => $brand->twitter_image,
+            ];
+
+            // cache for 5 hours (18000 seconds)
+            cache()->put('brand_details', $brandData, 18000);
+
+            // store in session for blade access
+            session(['brand_details' => $brandData]);
+        }
     }
+
+    // Keep admin auth middleware
+    $this->middleware('auth:admin')->only('logout');
+}
 
     /**
      * Show admin login form.
      */
     public function showLoginForm()
     {
+        
         if (Auth::guard('admin')->check()) {
+            
             return redirect()->route('admin.dashboard');
         }
 
@@ -109,4 +154,10 @@ class AdminController extends Controller
         $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:,.<>?';
         return substr(str_shuffle(str_repeat($chars, $length)), 0, $length);
     }
+    protected function BrandDetails()
+    {
+        $brand = BrandModel::first();
+
+        return $brand;
+}
 }

@@ -1,21 +1,26 @@
  
+  @php
+    $brand = session('brand_details') ?? cache('brand_details');
 
+    $brandName = $brand['name'] ?? config('app.name');
+    $brandLogo = $brand['logo_url'] ?? asset('system_images/ctrlogo.png');
+@endphp
 
 <style>
     .pagination .page-item .page-link {
         color: black;
-        border-color: #28a745;
+        border-color: #074784;
     }
 
     .pagination .page-item.active .page-link {
-        background-color: #28a745 !important;
-        border-color: #28a745 !important;
+        background-color: #074784 !important;
+        border-color: #074784 !important;
         color: #fff;
     }
 
     .pagination .page-item .page-link:hover {
-        background-color: #218838;
-        border-color: #218838;
+        background-color: #074784 !important;
+        border-color: #074784 !important;
         color: #fff;
     }
 
@@ -40,17 +45,17 @@
     }
 </style>
 
- <header id="page-topbar" class='bg-success'>
+ <header id="page-topbar" style="background-color: #074784;">
                 <div class="navbar-header mt-2">
 <div class="d-flex">
     <!-- LOGO -->
 <div class="navbar-brand-box d-flex justify-content-center align-items-center p-0 m-0">
     <a href="{{ route('admin.dashboard') }}" class="logo logo-white text-center p-0 m-0">
         <span class="logo-sm p-0 m-0">
-            <img src="{{ url('system_images/ctrlogo.jpg') }}" class="img-fluid p-0 m-0" alt="Tenant Management Organization">
+            <img src="{{ url($brandLogo )}}" class="img-fluid p-0 m-0" alt="{{ $brandName }} Logo">
         </span>
         <span class="logo-lg p-0 m-0">
-            <img src="{{ url('system_images/ctrlo.jpg') }}" class="img-fluid p-0 m-0" alt="Tenant Management Organization">
+            <img src="{{ url($brandLogo )}}" class="img-fluid p-0 m-0" alt="{{ $brandName }} Logo">
         </span>
     </a>
 </div>

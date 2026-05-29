@@ -57,6 +57,13 @@ class LoginController extends Controller
 
         if ($this->guard()->attempt($credentials, $request->filled('remember'))) {
             $user = $this->guard()->user();
+        
+             Log::info('User logged in: ' . $user->email);
+
+             // Mark email as verified if not already
+             if (is_null($user->email_verified_at)) {
+                $user->update(['email_verified_at' => now()]);
+            }
 
             if (is_null($user->email_verified_at)) {
                 $user->update(['email_verified_at' => now()]);

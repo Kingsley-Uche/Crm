@@ -19,8 +19,12 @@ return new class extends Migration
             $table->string('phone')->nullable(); // Phone number (optional)
             $table->unsignedBigInteger('created_by_admin_id')->nullable(); // Foreign key (unsigned)
             $table->string('password'); // Password
+                $table->unsignedTinyInteger('user_type')
+                    ->index()
+                    ->comment('1=system admin,2=property manager'); // User type (1 for system admin, 2 for property manager)
             $table->boolean('is_active')->default(1); // Active status, defaulting to 1 (active)
             $table->boolean('is_system_admin')->default(0); // Is system admin flag, defaulting to 0 (not a system admin)
+            $table->boolean('is_site_admin')->default(0);//overall site manager for subscription and activation
             $table->timestamp('email_verified_at')->nullable(); // Email verification timestamp
             $table->rememberToken(); // For 'remember me' functionality
             $table->timestamps(); // Created at and Updated at timestamps

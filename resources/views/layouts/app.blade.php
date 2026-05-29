@@ -25,7 +25,7 @@
 </head>
 <style>
 .bg-success,.btn-success {
-    background-color: #77c44e !important;
+    background-color:#074784 !important;
     color: white; /* Optional: to ensure contrast */
 }
     
@@ -33,11 +33,17 @@
 
 
 <body>
+        @php
+    $brand = session('brand_details') ?? cache('brand_details');
+
+    $brandName = $brand['name'] ?? config('app.name');
+    $brandLogo = $brand['logo_url'] ?? asset('system_images/ctrlogo.png');
+@endphp
     <div id="app">
         <nav class="navbar navbar-expand-md navbar-light bg-success shadow-sm">
             <div class="container-fluid">
                 <div class="navbar-brand text-white text-center">
-                   <strong> {{ config('app.name', 'CTR TRIANGLE TMO') }}</strong>
+                   <strong> {{ $brandName }}</strong>
                 </div>
             </div>
         </nav>

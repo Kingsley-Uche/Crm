@@ -453,8 +453,8 @@
 <style>
     /* Override Bootstrap's default blue active tab color with green */
     .nav-pills .nav-link.active {
-        background-color:#77c44e !important; /* Bootstrap's success green */
-        border-color:#77c44e !important;
+        background-color:#074784 !important; /* Bootstrap's success green */
+        border-color:#074784 !important;
         color: white !important;
     }
 

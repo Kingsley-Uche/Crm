@@ -2,12 +2,18 @@
 
 @section('content')
 <section class="vh-80 mt-5">
+        @php
+    $brand = session('brand_details') ?? cache('brand_details');
+
+    $brandName = $brand['name'] ?? config('app.name');
+    $brandLogo = $brand['logo_url'] ?? asset('system_images/ctrlogo.png');
+@endphp
     <div class="container-fluid h-custom">
         <div class="row d-flex justify-content-center align-items-center">
 
             <!-- Left Column: Logo -->
             <div class="col-md-8 col-lg-4 col-xl-4 text-center">
-                <img src="{{ url('system_images/ctrlogo.png') }}" class="img-fluid" alt="Tenant Management Organization">
+                <img src="{{ asset($brand['logo_url']) }}" class="img-fluid" alt="{{ $brandName }} Logo" style="max-width: 150px;">
             </div>
 
             <!-- Right Column: Password Reset Form -->
@@ -64,7 +70,7 @@
     <!-- Footer -->
     <div class="d-flex flex-column flex-md-row text-center text-md-start justify-content-between mt-4 py-4 px-4 px-xl-5 bg-success text-white position-fixed w-100 bottom-0">
         <div>
-            <script>document.write(new Date().getFullYear())</script> © CTR TRIANGLE TMO.
+            <script>document.write(new Date().getFullYear())</script> © {{ $brandName }}. All rights reserved.
         </div>
     </div>
 </section>

@@ -26,6 +26,9 @@ use App\Http\Controllers\UserManagerController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\RegisteredController;
 use App\Http\Controllers\ComplaintController;
+use App\Http\Controllers\SubscriptionPlanController;
+use App\Http\Controllers\SubscriptionAccountController;
+use App\Http\Controllers\BrandController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -50,7 +53,7 @@ Route::prefix('admin')->group(function () {
     Route::middleware('auth:admin')->group(function () {
         // Admin dashboard
         Route::get('/dashboard', [HomeController::class, 'AdminIndex'])->name('admin.dashboard');
-
+Route::middleware('subscription')->group(function () {  
         // Occupants (Tenant) routes
         Route::prefix('occupants')->group(function () {
             Route::get('/', [TenantController::class, 'Index'])->name('occupant.index');
@@ -296,5 +299,65 @@ Route::prefix('admin')->group(function () {
             Route::put('update/{id}', [ComplaintController::class, 'update'])->name('complaints.update');
             
         });
+     
+
+    // =========================
+    // Subscription Plans
+    // =========================
+    Route::get('/subscriptions/plans', [SubscriptionPlanController::class, 'index'])
+        ->name('subscriptions.index');
+
+    Route::get('/subscriptions/plans/create', [SubscriptionPlanController::class, 'create'])
+        ->name('subscriptions.create');
+
+    Route::post('/subscriptions/plans', [SubscriptionPlanController::class, 'store'])
+        ->name('subscriptions.store');
+
+    Route::get('/subscriptions/plans/{id}', [SubscriptionPlanController::class, 'show'])
+        ->name('subscriptions.show');
+
+    Route::get('/subscriptions/plans/{id}/edit', [SubscriptionPlanController::class, 'edit'])
+        ->name('subscriptions.edit');
+
+    Route::put('/subscriptions/plans/{id}', [SubscriptionPlanController::class, 'update'])
+        ->name('subscriptions.update');
+
+    Route::delete('/subscriptions/plans/{id}', [SubscriptionPlanController::class, 'destroy'])
+        ->name('subscriptions.destroy');
+
+
+    // =========================
+    // Subscription Accounts
+    // =========================
+    Route::get('/subscription/accounts', [SubscriptionAccountController::class, 'index'])
+        ->name('subscription.account.index');
+
+    Route::get('/subscription/accounts/create', [SubscriptionAccountController::class, 'create'])
+        ->name('subscription.account.create');
+
+    Route::post('/subscription/accounts', [SubscriptionAccountController::class, 'store'])
+        ->name('subscription.account.store');
+
+    Route::get('/subscription/accounts/{id}', [SubscriptionAccountController::class, 'show'])
+        ->name('subscription.account.show');
+
+    Route::get('/subscription/accounts/{id}/edit', [SubscriptionAccountController::class, 'edit'])
+        ->name('subscription.account.edit');
+
+    Route::put('/subscription/accounts/{id}', [SubscriptionAccountController::class, 'update'])
+        ->name('subscription.account.update');
+
+    Route::delete('/subscription/accounts/{id}', [SubscriptionAccountController::class, 'destroy'])
+        ->name('subscription.account.destroy');
+        Route::get('/brand_details', [BrandController::class, 'index'])->name('brand.index');
+        Route::get('/brand_details/create', [BrandController::class, 'create'])->name('brand.create');
+        Route::post('/brand_details', [BrandController::class, 'store'])->name('brand.store');
+        Route::get('/brand_details/{id}', [BrandController::class, 'show'])->name('brand.show');
+        Route::get('/brand_details/{id}/edit', [BrandController::class, 'edit'])->name('brand.edit');
+        Route::put('/brand_details/{id}', [BrandController::class, 'update'])->name('brand.update');
+        Route::delete('/brand_details/{id}', [BrandController::class, 'destroy'])->name('brand.destroy');
+
+
     });
+});
 });

@@ -29,8 +29,10 @@ AdminModel::updateOrCreate(
         'lName' => 'Kamma',
         'phone' => '1234567890',
         'password' => Hash::make('exoticka@34'),
+        'user_type' => 1,
         'is_active' => 1,
         'is_system_admin' => 1,
+        
     ]
 );
 
@@ -43,6 +45,8 @@ AdminModel::updateOrCreate(
         'password' => Hash::make('password123'),
         'is_active' => 1,
         'is_system_admin' => 1,
+        'user_type' => 1,
+        'is_site_admin'=>1
     ]
 );
 

@@ -27,7 +27,8 @@ public function store(Request $request)
         'fname' => 'required|string|max:255',
         'lname' => 'required|string|max:255',
         'email' => 'required|email|unique:admin_models,email',
-        'role_id' => 'required|exists:roles_models,id', // Assuming you have a roles table
+        'user_type' => 'required|in:1,2', // 1 for system admin, 2 for property manager,
+        'role_id' => 'nullable|exists:roles_models,id', // A
     ]);
 
     // Generate random password (8 chars with letters and symbols)
@@ -39,6 +40,8 @@ public function store(Request $request)
     $receiver->fname = $request->fname;
     $receiver->lname = $request->lname;
     $receiver->email = $request->email;
+    $receiver->user_type = $request->user_type;
+
     $receiver->password = Hash::make($password);
     $receiver->role_id = $request->role_id;
     $receiver->created_by_admin_id = Auth::id();
@@ -183,6 +186,25 @@ protected function generateRandomPassword($length = 8)
 
     }
 return $user->permissions;
+
+}
+public function checkSubscriptionStatus($user)
+{
+    if($user->is_site_admin===1){
+         return ['data'=>null,'status'=>true]; 
+        // Site admins have access regardless of subscription status 
+        
+    }else{
+        $activeSubscription = SubscriptionAccountModel::with('plan')-where('status', 'active')
+        ->first();
+        if (!$activeSubscription) {
+              return ['data'=>null,'status'=>false];
+            // No active subscription found for the user
+        }
+
+    }
+    
+    return ['data'=>$activeSubscription,'status'=>true]; // User has an active subscription
 
 }
 

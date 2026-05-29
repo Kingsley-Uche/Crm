@@ -1,12 +1,19 @@
 @extends('layouts.app')
 
 @section('content')
+
 <section class="vh-80 mt-5">
+    @php
+    $brand = session('brand_details') ?? cache('brand_details');
+
+    $brandName = $brand['name'] ?? config('app.name');
+    $brandLogo = $brand['logo_url'] ?? asset('system_images/ctrlogo.png');
+@endphp
     <div class="container-fluid h-custom">
         <div class="row d-flex justify-content-center align-items-center">
             <!-- Left Column: Image -->
             <div class="col-md-8 col-lg-4 col-xl-4 text-center">
-                <img src="{{ url('system_images/ctrlogo.png') }}" class="img-fluid" alt="Tenant Management Organization">
+                <img src="{{ asset($brand['logo_url']) }}" class="img-fluid" alt="{{ $brandName }} Logo" style="max-width: 150px;">
             </div>
 
             <!-- Right Column: Upcube-Styled Login Form -->
@@ -92,7 +99,7 @@
 
     <div class="d-flex flex-column flex-md-row text-center text-md-start justify-content-between mb-0 mt-1 py-4 px-4 px-xl-5 bg-success position-fixed w-100 bottom-0">
         <div class="text-white mb-3 mb-md-0">
-            <script>document.write(new Date().getFullYear())</script> © CTR TRIANGLE TMO.
+            <script>document.write(new Date().getFullYear())</script> © {{ $brandName }}. All rights reserved.
         </div>
         <div>
             <!-- Add your content here -->

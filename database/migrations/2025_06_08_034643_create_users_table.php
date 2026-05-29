@@ -10,19 +10,36 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('fname');
-            $table->string('lname');
+
+            $table->string('fname', 50);
+            $table->string('lname', 50);
+
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
-            $table->foreignId('role_id')->nullable()->constrained('roles_models')->onDelete('cascade');
+
+            $table->unsignedTinyInteger('user_type')
+                ->index()
+                ->comment('1=system admin,2=property manager,3=regular tenant');
+
+            $table->foreignId('role_id')
+                ->nullable()
+                ->constrained('roles_models')
+                ->nullOnDelete();
+
             $table->string('password');
-            $table->unsignedBigInteger('created_by')->nullable();
-            $table->unsignedBigInteger('updated_by')->nullable();
+
+            $table->foreignId('created_by')
+                ->nullable()
+                ->constrained('admin_models')
+                ->nullOnDelete();
+
+            $table->foreignId('updated_by')
+                ->nullable()
+                ->constrained('admin_models')
+                ->nullOnDelete();
+
             $table->rememberToken();
             $table->timestamps();
-
-            $table->foreign('created_by')->references('id')->on('admin_models')->nullOnDelete();
-            $table->foreign('updated_by')->references('id')->on('admin_models')->nullOnDelete();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
@@ -33,10 +50,17 @@ return new class extends Migration
 
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
+
+            $table->foreignId('user_id')
+                ->nullable()
+                ->index();
+
             $table->string('ip_address', 45)->nullable();
+
             $table->text('user_agent')->nullable();
+
             $table->longText('payload');
+
             $table->integer('last_activity')->index();
         });
     }

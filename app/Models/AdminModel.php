@@ -14,7 +14,7 @@ class AdminModel extends Authenticatable // Use Authenticatable instead of Model
 
     // Fields that can be mass assigned
     protected $fillable = [
-        'fName', 'lName', 'email', 'phone', 'password', 'is_active', 'is_system_admin', 'created_by_admin_id','role_id',
+        'fName', 'lName', 'email', 'phone', 'password', 'is_active', 'is_system_admin','is_site_admin', 'created_by_admin_id','role_id','user_type'
     ];
 
     // Fields that should be hidden when serialized (e.g., to JSON)
