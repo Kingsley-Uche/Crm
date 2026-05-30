@@ -13,6 +13,7 @@ class BrandModel extends Model
         'name',
         'description',
         'logo_url',
+        'brand_color',
         'website_url',
         'contact_email',
         'contact_phone',

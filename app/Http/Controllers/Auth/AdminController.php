@@ -30,6 +30,7 @@ class AdminController extends Controller
                 'name' => $brand->name,
                 'description' => $brand->description,
                 'logo_url' => $brand->logo_url,
+                'brand_color' => $brand->brand_color,
                 'website_url' => $brand->website_url,
                 'contact_email' => $brand->contact_email,
                 'contact_phone' => $brand->contact_phone,
@@ -50,6 +51,7 @@ class AdminController extends Controller
                 'twitter_description' => $brand->twitter_description,
                 'twitter_image' => $brand->twitter_image,
             ];
+        
 
             // cache for 5 hours (18000 seconds)
             cache()->put('brand_details', $brandData, 18000);

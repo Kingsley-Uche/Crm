@@ -1,28 +1,30 @@
  
-  @php
+@php
     $brand = session('brand_details') ?? cache('brand_details');
 
     $brandName = $brand['name'] ?? config('app.name');
     $brandLogo = $brand['logo_url'] ?? asset('system_images/ctrlogo.png');
+    $brandColor = $brand['brand_color'] ?? '#074784';
 @endphp
 
 <style>
-    .pagination .page-item .page-link {
-        color: black;
-        border-color: #074784;
-    }
+<style>
+.pagination .page-item .page-link {
+    color: black;
+    border-color: {{ $brandColor }};
+}
 
-    .pagination .page-item.active .page-link {
-        background-color: #074784 !important;
-        border-color: #074784 !important;
-        color: #fff;
-    }
+.pagination .page-item.active .page-link {
+    background-color: {{ $brandColor }} !important;
+    border-color: {{ $brandColor }} !important;
+    color: #fff;
+}
 
-    .pagination .page-item .page-link:hover {
-        background-color: #074784 !important;
-        border-color: #074784 !important;
-        color: #fff;
-    }
+.pagination .page-item .page-link:hover {
+    background-color: {{ $brandColor }} !important;
+    border-color: {{ $brandColor }} !important;
+    color: #fff;
+}
 
     .navbar-brand-box {
         padding: 10px 15px;
@@ -45,7 +47,7 @@
     }
 </style>
 
- <header id="page-topbar" style="background-color: #074784;">
+ <header id="page-topbar" style="background-color: {{ $brandColor }};">
                 <div class="navbar-header mt-2">
 <div class="d-flex">
     <!-- LOGO -->

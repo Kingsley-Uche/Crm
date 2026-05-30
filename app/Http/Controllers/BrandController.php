@@ -12,8 +12,7 @@ class BrandController extends Controller
 {
     public function index()
     {
-        $brands = BrandModel::latest()->paginate(20);
-
+        $brands = BrandModel::first();
         return view('layouts.brand.index', compact('brands'));
     }
 
@@ -38,6 +37,7 @@ class BrandController extends Controller
         'name' => 'required|string|max:255',
         'description' => 'nullable|string',
         'logo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:204',
+        'brand_color' => ['nullable','regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
         'website_url' => 'nullable|url',
         'contact_email' => 'nullable|email',
         'contact_phone' => 'nullable|string|max:50',
@@ -62,8 +62,7 @@ class BrandController extends Controller
     if ($validator->fails()) {
         return back()->withErrors($validator)->withInput();
     }
-
-    $data = $request->except('logo');
+$data = $request->except('logo');
 
     if ($request->hasFile('logo')) {
 
@@ -77,7 +76,9 @@ class BrandController extends Controller
         $path = $file->store('brands', 'public');
         $data['logo_url'] = 'storage/' . $path;
     }
+    
 
+    $data['brand_color'] = $request->brand_color ?? '#074784';
     $brand = BrandModel::create($data);
 
     // 🔥 CLEAR CACHE AFTER CREATE
@@ -150,9 +151,9 @@ class BrandController extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
-        $data = $request->except('logo');
+$data = $request->except('logo');
 
-        // 🔥 UPDATE LOGO
+        //  UPDATE LOGO
         if ($request->hasFile('logo')) {
 
             $file = $request->file('logo');
@@ -177,10 +178,12 @@ class BrandController extends Controller
             $data['logo_url'] = 'storage/' . $path;
         }
 
-        $brand->update($data);
+
+$data['brand_color'] = $request->brand_color ?? $brand->brand_color;
+
         $brand->update($data);
 
-// 🔥 CLEAR CACHE AFTER UPDATE
+//  CLEAR CACHE AFTER UPDATE
 cache()->forget('brand_details');
 session()->forget('brand_details');
 
@@ -203,9 +206,8 @@ return redirect()
         }
 
         $brand->delete();
-        $brand->delete();
 
-// 🔥 CLEAR CACHE AFTER DELETE
+//  CLEAR CACHE AFTER DELETE
 cache()->forget('brand_details');
 session()->forget('brand_details');
 

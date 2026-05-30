@@ -8,6 +8,7 @@
 
     $brandName = $brand['name'] ?? config('app.name');
     $brandLogo = $brand['logo_url'] ?? asset('system_images/ctrlogo.png');
+    $brandColor = $brand['brand_color'] ?? '#074784';
 @endphp
     <div class="container-fluid h-custom">
         <div class="row d-flex justify-content-center align-items-center">
@@ -97,7 +98,7 @@
         </div>
     </div>
 
-    <div class="d-flex flex-column flex-md-row text-center text-md-start justify-content-between mb-0 mt-1 py-4 px-4 px-xl-5 bg-success position-fixed w-100 bottom-0">
+    <div class="d-flex flex-column flex-md-row text-center text-md-start justify-content-between mb-0 mt-1 py-4 px-4 px-xl-5  position-fixed w-100 bottom-0" style="background-color: {{ $brandColor }}; color: white;">
         <div class="text-white mb-3 mb-md-0">
             <script>document.write(new Date().getFullYear())</script> © {{ $brandName }}. All rights reserved.
         </div>

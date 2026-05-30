@@ -12,6 +12,17 @@
 
 @endif
 
+ @php
+    $brand = session('brand_details') ?? cache('brand_details');
+
+    $brandName = $brand['name'] ?? config('app.name');
+    $brandColor = $brand['brand_color'] ?? '#074784';
+@endphp
+            <div class="card-body">
+                <h3 class="card-title text-center">Occupant Registration Form</h3>
+                <p class="card-title-desc text-center">
+                    Please fill in the required details below. All fields marked with 
+                    <span class="text-danger">*</span> are mandatory.
 <div class="row px-3 py-3"><!-- Added horizontal and vertical padding -->
     <div class="col-12">
         <div class="page-title-box d-sm-flex align-items-center justify-content-between">
@@ -453,8 +464,8 @@
 <style>
     /* Override Bootstrap's default blue active tab color with green */
     .nav-pills .nav-link.active {
-        background-color:#074784 !important; /* Bootstrap's success green */
-        border-color:#074784 !important;
+        background-color:{{ $brandColor }} !important; /* Bootstrap's success green */
+        border-color:{{ $brandColor }} !important;
         color: white !important;
     }
 

@@ -1,8 +1,17 @@
 @include('layouts.components.head')
+ @php
+    $brand = session('brand_details') ?? cache('brand_details');
+
+    $brandName = $brand['name'] ?? config('app.name');
+    $brandColor = $brand['brand_color'] ?? '#074784';
+    $brand_description = $brand['description'] ?? 'CTR TRIANGLE TMO';
+@endphp
   <div id="preloader">
             <div id="status">
                 <div class="spinner">
-    <i class="ri-loader-line spin-icon text-success" style="font-size: 1rem;">CTR LTD</i>
+    <i class="ri-loader-line spin-icon" style="font-size: 1rem; color: {{ $brandColor }};">
+        {{ substr($brandName, 0, 12) }}
+    </i>
 </div>
             </div>
         </div>
@@ -18,11 +27,11 @@
         </div>
         <!-- End Page-content -->
 
-        <footer class="footer bg-success">
+        <footer class="footer" style="background-color: {{ $brandColor }};">
             <div class="container-fluid">
                 <div class="row text-white">
                     <div class="col-sm-6">
-                        <script>document.write(new Date().getFullYear())</script> © CTR TRIANGLE TMO.
+                        <script>document.write(new Date().getFullYear())</script> © {{ $brandName }}.
                     </div>
                     <div class="col-sm-6">
 

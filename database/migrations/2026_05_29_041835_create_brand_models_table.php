@@ -22,6 +22,7 @@ return new class extends Migration
             // Branding
             $table->string('logo_url')->nullable();
             $table->string('website_url')->nullable();
+            $table->string('brand_color')->nullable();
 
             // Contact
             $table->string('contact_email')->nullable();

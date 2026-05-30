@@ -6,7 +6,6 @@
     <div class="col-12">
 
         <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-
             <h4 class="mb-sm-0">Brand Details</h4>
 
             <div class="page-title-right">
@@ -14,10 +13,9 @@
                     <li class="breadcrumb-item">
                         <a href="{{ route('brand.index') }}">Brand</a>
                     </li>
-                    <li class="breadcrumb-item active">List</li>
+                    <li class="breadcrumb-item active">Details</li>
                 </ol>
             </div>
-
         </div>
 
     </div>
@@ -46,130 +44,113 @@
 
                     <div>
                         <h4 class="card-title">Brand Profile</h4>
-                        <p class="card-title-desc">Manage your single brand details</p>
+                        <p class="card-title-desc">Manage your brand details</p>
                     </div>
 
-                    <a href="{{ route('brand.create') }}" class="btn btn-success">
-                        <i class="fa fa-plus text-white"></i> Create Brand
-                    </a>
+                    
+                    @if(!$brands)
+                        <a href="{{ route('brand.create') }}" class="btn btn-success">
+                            <i class="fa fa-plus text-white"></i> Create Brand
+                        </a>
+                    @endif
 
                 </div>
 
-                <div class="table-responsive">
+                @if($brands)
 
-                    <table class="table table-hover mb-0">
+                    <div class="table-responsive">
 
-                        <thead>
-                            <tr>
-                                <th>SN</th>
-                                <th>Logo</th>
-                                <th>Name</th>
-                                <th>Website</th>
-                                <th>Email</th>
-                                <th>Indexed</th>
-                                <th>Created</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
+                        <table class="table table-hover mb-0">
 
-                        <tbody>
-
-                            @forelse($brands as $index => $brand)
+                            <tbody>
 
                                 <tr>
-
-                                    <th scope="row">
-                                        {{ $index + 1 }}
-                                    </th>
-
+                                    <th width="200">Logo</th>
                                     <td>
-                                        @if($brand->logo_url)
-                                            <img src="{{ asset($brand->logo_url) }}"
-                                                 width="45"
-                                                 height="45"
+                                        @if($brands->logo_url)
+                                            <img src="{{ asset($brands->logo_url) }}"
+                                                 width="80"
+                                                 height="80"
                                                  style="object-fit:cover;border-radius:6px;">
                                         @else
                                             <span class="text-muted">No Logo</span>
                                         @endif
                                     </td>
+                                </tr>
 
-                                    <td>
-                                        {{ $brand->name }}
-                                    </td>
+                                <tr>
+                                    <th>Name</th>
+                                    <td>{{ $brands->name }}</td>
+                                </tr>
 
+                                <tr>
+                                    <th>Website</th>
                                     <td>
-                                        @if($brand->website_url)
-                                            <a href="{{ $brand->website_url }}" target="_blank">
-                                                Visit
+                                        @if($brands->website_url)
+                                            <a href="{{ $brands->website_url }}" target="_blank">
+                                                {{ $brands->website_url }}
                                             </a>
                                         @else
                                             <span class="text-muted">N/A</span>
                                         @endif
                                     </td>
+                                </tr>
 
-                                    <td>
-                                        {{ $brand->contact_email ?? 'N/A' }}
-                                    </td>
+                                <tr>
+                                    <th>Email</th>
+                                    <td>{{ $brands->contact_email ?? 'N/A' }}</td>
+                                </tr>
 
+                                <tr>
+                                    <th>Indexed</th>
                                     <td>
-                                        @if($brand->is_indexed)
+                                        @if($brands->is_indexed)
                                             <span class="badge bg-success">Yes</span>
                                         @else
                                             <span class="badge bg-danger">No</span>
                                         @endif
                                     </td>
-
-                                    <td>
-                                        {{ $brand->created_at->format('d M Y') }}
-                                    </td>
-
-                                    <td>
-
-                                        <div class="d-flex gap-2">
-
-                                            <a href="{{ route('brand.edit', $brand->id) }}"
-                                               class="btn btn-sm">
-                                               <i class="fa fa-pen text-success"></i>
-                                                Edit
-                                            </a>
-
-                                            <form action="{{ route('brand.destroy', $brand->id) }}"
-                                                  method="POST">
-
-                                                @csrf
-                                                @method('DELETE')
-
-                                                <button type="submit" class="btn btn-sm" title="Delete">
-                                                <i class="fas fa-trash-alt delete-btn text-danger"></i>
-                                            </button>
-
-                                            </form>
-
-                                        </div>
-
-                                    </td>
-
                                 </tr>
-
-                            @empty
 
                                 <tr>
-                                    <td colspan="8" class="text-center">
-                                        No brand found.
-                                    </td>
+                                    <th>Created</th>
+                                    <td>{{ $brands->created_at?->format('d M Y') }}</td>
                                 </tr>
 
-                            @endforelse
+                            </tbody>
 
-                        </tbody>
+                        </table>
 
-                    </table>
+                    </div>
 
-                </div>
+                    <div class="mt-4 d-flex gap-2">
 
-                <div class="mt-3">
-                    {{ $brands->links() }}
-                </div>
+                        <a href="{{ route('brand.edit', $brands->id) }}"
+                           class="btn">
+                            <i class="fa fa-pen text-primary"></i>Edit
+                        </a>
+
+                        <form action="{{ route('brand.destroy', $brands->id) }}"
+                              method="POST">
+
+                            @csrf
+                            @method('DELETE')
+
+                            <button type="submit" class="btn delete-btn">
+                                <i class="fas fa-trash-alt text-danger"></i> Delete
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                @else
+
+                    <div class="alert alert-info">
+                        No brand has been created yet.
+                    </div>
+
+                @endif
 
             </div>
 

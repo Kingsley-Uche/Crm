@@ -1,4 +1,10 @@
 <!doctype html>
+ @php
+    $brand = session('brand_details') ?? cache('brand_details');
+
+    $brandName = $brand['name'] ?? config('app.name');
+    $brandColor = $brand['brand_color'] ?? '#074784';
+@endphp
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
@@ -19,13 +25,13 @@
     
     <!-- App Css -->
     <link href="{{ asset('assets/css/app.min.css') }}" id="app-style" rel="stylesheet" type="text/css" />
-<link rel="shortcut icon" href="{{ asset('assets/images/ctrlogo.jpg') }}">
+<link rel="shortcut icon" href="{{ asset($brandLogo) }}">
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 </head>
 <style>
 .bg-success,.btn-success {
-    background-color:#074784 !important;
+    background-color:{{ $brandColor }} !important;
     color: white; /* Optional: to ensure contrast */
 }
     
@@ -33,14 +39,9 @@
 
 
 <body>
-        @php
-    $brand = session('brand_details') ?? cache('brand_details');
-
-    $brandName = $brand['name'] ?? config('app.name');
-    $brandLogo = $brand['logo_url'] ?? asset('system_images/ctrlogo.png');
-@endphp
+       
     <div id="app">
-        <nav class="navbar navbar-expand-md navbar-light bg-success shadow-sm">
+        <nav class="navbar navbar-expand-md navbar-light shadow-sm" style="background-color: {{ $brandColor }};">
             <div class="container-fluid">
                 <div class="navbar-brand text-white text-center">
                    <strong> {{ $brandName }}</strong>

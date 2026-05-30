@@ -1,15 +1,23 @@
 <head>
+  @php
+    $brand = session('brand_details') ?? cache('brand_details');
+
+    $brandName = $brand['name'] ?? config('app.name');
+    $brandColor = $brand['brand_color'] ?? '#074784';
+    $brand_description = $brand['description'] ?? 'CTR TRIANGLE TMO';
+    $brand_logo = $brand['logo_url'] ?? asset('system_images/ctrlogo.png');
+@endphp
     <meta charset="utf-8" />
-    <title>@yield('title', 'CTR TRIANGLE TMO')</title>
+    <title>@yield('title', $brandName)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="CTR Dashboard" />
+    <meta name="description" content="{{ $brand_description }}" />
     <meta name="author" content="Kamma Uche" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
 
     <!-- Favicon -->
 <!-- Favicon -->
-<link rel="shortcut icon" href="{{ asset('assets/images/ctrlogo.jpg') }}">
+<link rel="shortcut icon" href="{{ $brand_logo }}">
 
 <!-- SweetAlert2 -->
 <link href="{{ asset('assets/libs/sweetalert2/sweetalert2.min.css') }}" rel="stylesheet" type="text/css" />
@@ -29,7 +37,7 @@
 <link href="{{ asset('assets/css/app.min.css') }}" id="app-style" rel="stylesheet" type="text/css" />
 
 </head>
-
+  
 <style>
 #sidebar-menu ul li a,
 #sidebar-menu ul li a i,
@@ -45,24 +53,24 @@
 
 
 
+.mm-active > a,
 .mm-active > a i,
 .mm-active > i,
 .mm-active .active i,
 .topnav .navbar-nav .nav-item .nav-link.active i,
 body[data-sidebar=colored].vertical-collpsed .vertical-menu #sidebar-menu ul>li>a.mm-active i,
 body[data-sidebar=dark].vertical-collpsed .vertical-menu #sidebar-menu ul>li>a.mm-active i,
-.mm-active > a,
-.mm-active .active i{
-  color: #074784 !important; /* Or your desired green color */
+.mm-active > a {
+  color: {{ $brandColor }} !important;
 }
 
 .topnav .navbar-nav .nav-item .nav-link.active,
 .topnav .navbar-nav .dropdown-item.active{
-    color: #074784;
+    color: {{ $brandColor }};
 }
 
 .bg-success,.btn-success {
-    background-color: #074784 !important;
+    background-color: {{ $brandColor }} !important;
     color: white; /* Optional: to ensure contrast */
 }
 
