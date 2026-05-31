@@ -11,46 +11,65 @@ use Illuminate\Support\Facades\Mail;
 use App\Models\RolesModel;
 use App\Models\PermissionsModel; // Assuming you have a PermissionsModel for user permissions
 use Illuminate\Support\Facades\Session;
+use App\Models\SubscriptionAccountModel;
+use Illuminate\Support\Facades\Validator;
 class UserManagerController extends Controller
 {
   
 
 
+
+
 public function store(Request $request)
 {
-      $user = auth()->user();
-        $permissions = session('permissions');
-       if (!$user || (!$user->is_system_admin==='1')){
-            return redirect()->back()->with('error', 'Unauthorized access to users module.');
-        }
-    $request->validate([
+    $user = auth()->user();
+    
+
+    if (!$user || (int) $user->is_system_admin !== 1) {
+    return back()->with('error', 'Unauthorized access to users module.');
+}
+    $validator = Validator::make($request->all(), [
         'fname' => 'required|string|max:255',
         'lname' => 'required|string|max:255',
         'email' => 'required|email|unique:admin_models,email',
-        'user_type' => 'required|in:1,2', // 1 for system admin, 2 for property manager,
-        'role_id' => 'nullable|exists:roles_models,id', // A
+        'user_type' => 'required|in:1,2',
+        'role_id' => 'nullable|exists:roles_models,id',
     ]);
 
-    // Generate random password (8 chars with letters and symbols)
-    $password = $this->generateRandomPassword(8);
-     $receiver = new User();
+    if ($validator->fails()) {
+        return back()
+            ->withErrors($validator)
+            ->withInput();
+    }
 
-    // Create user with hashed password
-   
+    $currentCount = User::count();
+    $total = $currentCount + 1;
+
+    if (!$user->is_site_admin && !$this->checkAdminLimit($total)) {
+        return back()
+            ->withInput()
+            ->with('error', "Admin limit exceeded. You can only create up to {$currentCount} admins.");
+    }
+
+    $password = $this->generateRandomPassword(8);
+
+    $receiver = new User();
     $receiver->fname = $request->fname;
     $receiver->lname = $request->lname;
     $receiver->email = $request->email;
     $receiver->user_type = $request->user_type;
-
     $receiver->password = Hash::make($password);
     $receiver->role_id = $request->role_id;
     $receiver->created_by_admin_id = Auth::id();
     $receiver->save();
 
-    // Send email with password
-    Mail::to($receiver->email)->send(new \App\Mail\UserPasswordMail($receiver, $password));
+    Mail::to($receiver->email)->send(
+        new \App\Mail\UserPasswordMail($receiver, $password)
+    );
 
-    return redirect()->route('access.users.index')->with('success', 'User created and password emailed successfully.');
+    return redirect()
+        ->route('access.users.index')
+        ->with('success', 'User created and password emailed successfully.');
 }
 
 /**
@@ -188,24 +207,53 @@ protected function generateRandomPassword($length = 8)
 return $user->permissions;
 
 }
-public function checkSubscriptionStatus($user)
+public function checkSubscriptionStatus($user = null)
+{
+     $user = $user ?? auth()->user();
+
+     if (!$user) {
+        return ['data'=>null,'status'=>false];
+    }
+
+     $activeSubscription = SubscriptionAccountModel::with('plan')
+        ->where('status', 'active')
+        ->first();
 {
     if($user->is_site_admin===1){
          return ['data'=>null,'status'=>true]; 
         // Site admins have access regardless of subscription status 
         
     }else{
-        $activeSubscription = SubscriptionAccountModel::with('plan')-where('status', 'active')
+        $activeSubscription = SubscriptionAccountModel::with('plan')->where('status', 'active')
         ->first();
+       
         if (!$activeSubscription) {
+        
               return ['data'=>null,'status'=>false];
             // No active subscription found for the user
         }
 
+
     }
     
-    return ['data'=>$activeSubscription,'status'=>true]; // User has an active subscription
+    
+    return ['data'=>$activeSubscription->plan,'status'=>true]; // User has an active subscription
 
 }
 
+}
+private function checkAdminLimit($total)
+{
+    $subscriptionStatus = $this->checkSubscriptionStatus();
+    if (!$subscriptionStatus['status']) {
+        return false; // No active subscription, limit is 0
+    }
+
+    $plan = $subscriptionStatus['data'];
+    if (!$plan || !isset($plan->number_admins)) {
+        return false; // Plan data is missing or doesn't have admin limit info
+    }
+
+    return $total <= $plan->number_admins;
+}
 }

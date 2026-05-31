@@ -14,12 +14,14 @@ return new class extends Migration
         Schema::create('location_models', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->unsignedBigInteger('branch_id')->nullable();
+            $table->foreign('branch_id')->references('id')->on('branch_models')->onDelete('set null');
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('locations');
+        Schema::dropIfExists('location_models');
     }
 };

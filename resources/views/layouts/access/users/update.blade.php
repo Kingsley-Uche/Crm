@@ -81,6 +81,19 @@
                             @enderror
                         </div>
                         <div class="col-md-6">
+                            <label for="user_type" class="form-label">User Type</label>
+                            <select name="user_type" id="user_type" class="form-select" required>
+                                <option value="">-- Select User Type --</option>
+                                <option value="1" {{ old('user_type', $admin->user_type) == '1' ? 'selected' : '' }}>System Admin</option>
+                                <option value="2" {{ old('user_type', $admin->user_type) == '2' ? 'selected' : '' }}>Property Manager</option>
+                            </select>
+                            @error('user_type')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
                             <label for="role_id" class="form-label">Assign Role</label>
                             <select name="role_id" id="role_id" class="form-select" required>
                                 <option value="">-- Select Role --</option>

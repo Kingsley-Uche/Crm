@@ -6,6 +6,8 @@ use App\Models\LocationModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
+use App\Models\BranchModel;
+
 
 class Location extends Controller
 {
@@ -16,7 +18,8 @@ class Location extends Controller
         if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'read_property')))) {
             return redirect()->back()->with('error', 'Unauthorized access to locations.');
         }
-        $locations = LocationModel::all();
+       $locations = LocationModel::with('branch:id,name') ->select('id', 'name', 'branch_id')->get();
+         
         return view('layouts.location.index', compact('locations'));
     }
 
@@ -27,7 +30,8 @@ class Location extends Controller
         if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'create_property')))) {
             return redirect()->back()->with('error', 'Unauthorized access to create locations.');
         }
-        return view('layouts.location.create');
+        $branches = BranchModel::all();
+        return view('layouts.location.create', compact('branches'));
     }
 
     public function store(Request $request)
@@ -39,10 +43,11 @@ class Location extends Controller
         }
         $request->validate([
             'name' => 'required|string|max:255',
+            'branch_id' => 'nullable|exists:branch_models,id',
         ]);
-
         LocationModel::create([
             'name' => $request->name,
+            'branch_id' => $request->branch_id,
         ]);
 
         return redirect()->route('locations.index')->with('success', 'Location created successfully.');
@@ -66,8 +71,10 @@ class Location extends Controller
         if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'update_property')))) {
             return redirect()->back()->with('error', 'Unauthorized access to locations.');
         }
-        $location = LocationModel::findOrFail($id);
-        return view('layouts.location.edit', compact('location'));
+        $location = LocationModel::with('branch:id,name')->select('id', 'name', 'branch_id')->findOrFail($id);
+         
+        $branches = BranchModel::all();
+        return view('layouts.location.edit', compact('location', 'branches'));
     }
 
     public function update(Request $request, $id)
@@ -82,10 +89,12 @@ class Location extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
+            'branch_id' => 'nullable|exists:branch_models,id',
         ]);
 
         $location->update([
             'name' => $request->name,
+            'branch_id' => $request->branch_id,
         ]);
 
         return redirect()->route('locations.index')->with('success', 'Location updated successfully.');
@@ -100,6 +109,7 @@ class Location extends Controller
         }
 
         $location = LocationModel::findOrFail($id);
+        //check if location has blocks
         $location->delete();
 
         return redirect()->route('locations.index')->with('success', 'Location deleted successfully.');

@@ -24,7 +24,35 @@
                 <div class="card-body">
                     <h4 class="card-title">Create Location</h4>
                     <p class="card-title-desc">Enter the name of the new location below.</p>
+<div class="row mb-3">
+    <label for="branch_id" class="col-sm-2 col-form-label">
+        Branch <span class="text-danger">*</span>
+    </label>
 
+    <div class="col-sm-10">
+        <select
+            name="branch_id"
+            id="branch_id"
+            class="form-control js-searchable @error('branch_id') is-invalid @enderror"
+            required
+        >
+            <option value="">-- Select Branch --</option>
+
+            @foreach($branches as $branch)
+                <option value="{{ $branch->id }}"
+                    {{ old('branch_id') == $branch->id ? 'selected' : '' }}>
+                    {{ ucwords($branch->name) }}
+                </option>
+            @endforeach
+        </select>
+
+        @error('branch_id')
+            <div class="invalid-feedback d-block">
+                {{ $message }}
+            </div>
+        @enderror
+    </div>
+</div>
                     <div class="row mb-3">
                         <label for="name" class="col-sm-2 col-form-label">Location Name</label>
                         <div class="col-sm-10">

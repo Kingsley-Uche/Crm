@@ -30,11 +30,12 @@ class CheckSubscription
         
         // 3. Safely fetch session data using the null-coalescing operator
         $subscription = session('subscription_status');
+    
         $status = $subscription['status'] ?? null;
 
 
         // 4. Validate Site Admin status AND active subscription
-        if ((int) $user->is_site_admin !== 1 || $status !== true) {
+        if ((int) $user->is_site_admin !== 1 && (bool) $status !== true) {
              if ($request->expectsJson()) {
                 return response()->json(['message' => 'Subscription required.'], 403);
             }
@@ -42,10 +43,15 @@ class CheckSubscription
                 return response()->json(['message' => 'Subscription required.'], 403);
             }
 
+             // Redirect API clients to a JSON response
+             return response()->json(['message' => 'An active subscription is required.'], 403);
+             
+             // Redirect web browser users to a friendly page (adjust route name as needed)
+             return redirect()->route('admin.dashboard')->with('error', 'An active subscription is required.');
             // Redirect web browser users to a friendly page (adjust route name as needed)
             return redirect()->route('admin.dashboard')->with('error', 'An active subscription is required.');
         }
-       
+
         return $next($request);
     }
 }

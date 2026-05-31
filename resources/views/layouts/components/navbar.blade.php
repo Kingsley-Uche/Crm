@@ -29,19 +29,12 @@ $user = (Session::get('user'));
                                 <span>Estate Owner Manager</span>
                             </a>
                             <ul class="sub-menu" aria-expanded="false">
-                                @if(Session::get('permissions')->contains('slug', 'create_estate_owner')||$user->is_system_admin===1)
-                                    <li>
-                                        <a href="{{ route('estate_owners.create') }}"
-                                           style="{{ request()->routeIs('estate_owners.create') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="far fa-plus-square"></i> Create Owner
-                                        </a>
-                                    </li>
-                                @endif
+                                
                                 @if(Session::get('permissions')->contains('slug', 'read_estate_owner')|| $user->is_system_admin===1)
                                     <li>
                                         <a href="{{ route('estate_owners.index') }}"
                                            style="{{ request()->routeIs('estate_owners.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="far fa-eye"></i> View Owners
+                                            <i class="far fa-eye"></i> Estate Owners
                                         </a>
                                     </li>
                                 @endif
@@ -59,19 +52,12 @@ $user = (Session::get('user'));
                                 <span>Occupants Manager</span>
                             </a>
                             <ul class="sub-menu" aria-expanded="false">
-                                @if(Session::get('permissions')->contains('slug', 'create_tenant')|| $user->is_system_admin===1)
-                                    <li>
-                                        <a href="{{ route('occupant.create.form') }}"
-                                           style="{{ request()->routeIs('occupant.create.form') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="far fa-plus-square"></i> Create Occupants
-                                        </a>
-                                    </li>
-                                @endif
+                               
                                 @if(Session::get('permissions')->contains('slug', 'read_tenant')||$user->is_system_admin===1)
                                     <li>
                                         <a href="{{ route('occupant.index') }}"
                                            style="{{ request()->routeIs('occupant.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="far fa-eye"></i> View Occupants
+                                            <i class="far fa-eye"></i> Occupants
                                         </a>
                                     </li>
                                 @endif
@@ -95,6 +81,15 @@ $user = (Session::get('user'));
                                 <span>Property Manager</span>
                             </a>
                             <ul class="sub-menu" aria-expanded="true">
+
+                            @if(Session::get('permissions')->contains('slug', 'read_branches')||$user->is_system_admin===1)
+                                    <li>
+                                        <a href="{{ route('branches.index') }}"
+                                           style="{{ request()->routeIs('branches.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
+                                            <i class="fa fa-eye"></i> Branches
+                                        </a>
+                                    </li>
+                                @endif
                             
                               
                                 @if(Session::get('permissions')->contains('slug', 'create_locations') || Session::get('permissions')->contains('slug', 'read_locations')||$user->is_system_admin===1)
@@ -105,19 +100,12 @@ $user = (Session::get('user'));
                                             <i class="fa fa-map-marker" aria-hidden="true"></i> Locations
                                         </a>
                                         <ul class="sub-menu" aria-expanded="true">
-                                            @if(Session::get('permissions')->contains('slug', 'create_locations')||$user->is_system_admin===1)
-                                                <li>
-                                                    <a href="{{ route('locations.create') }}"
-                                                       style="{{ request()->routeIs('locations.create') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                                        <i class="fa fa-plus"></i> Create
-                                                    </a>
-                                                </li>
-                                            @endif
+                                           
                                             @if(Session::get('permissions')->contains('slug', 'read_locations')||$user->is_system_admin===1)
                                                 <li>
                                                     <a href="{{ route('locations.index') }}"
                                                        style="{{ request()->routeIs('locations.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                                        <i class="far fa-eye"></i> View
+                                                        <i class="far fa-eye"></i> Property Locations
                                                     </a>
                                                 </li>
                                             @endif
@@ -183,34 +171,7 @@ $user = (Session::get('user'));
                     @endif
                 @endif
 
-                @if(Session::has('permissions'))
-                    @if(Session::get('permissions')->contains('slug', 'create_tenancy') || Session::get('permissions')->contains('slug', 'read_tenancy')||$user->is_system_admin===1)
-                        <li>
-                            <a href="javascript:void(0)" class="waves-effect has-arrow">
-                                <i class="fas fa-key"></i>
-                                <span>Tenancy Manager</span>
-                            </a>
-                            <ul class="sub-menu" aria-expanded="true">
-                                @if(Session::get('permissions')->contains('slug', 'read_tenancy'))
-                                    <li>
-                                        <a href="{{ route('tenancy.index') }}"
-                                           style="{{ request()->routeIs('tenancy.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="far fa-eye"></i> View all
-                                        </a>
-                                    </li>
-                                @endif
-                                @if(Session::get('permissions')->contains('slug', 'create_tenancy')||$user->is_system_admin===1)
-                                    <li>
-                                        <a href="{{ route('tenancy.show') }}"
-                                           style="{{ request()->routeIs('tenancy.show') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="fa fa-plus"></i> Create Tenancy
-                                        </a>
-                                    </li>
-                                @endif
-                            </ul>
-                        </li>
-                    @endif
-                @endif
+               
 
                 @if(Session::has('permissions'))
                     @if(Session::get('permissions')->contains('slug', 'read_rent') || Session::get('permissions')->contains('slug', 'create_rent')||$user->is_system_admin===1)
@@ -280,12 +241,7 @@ $user = (Session::get('user'));
                                     </li>
                                 @endif
                                 @if(Session::get('permissions')->contains('slug', 'create_voids'))
-                                    <li>
-                                        <a href="{{ route('void.create') }}"
-                                           style="{{ request()->routeIs('void.create') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="fa fa-plus"></i> Create
-                                        </a>
-                                    </li>
+                                    
                                     <li>
                                         <a href="{{ route('void.import.load') }}"
                                            style="{{ request()->routeIs('void.import.load') ? 'color: ' . $brand_color . ' !important;' : '' }}">
@@ -310,17 +266,12 @@ $user = (Session::get('user'));
                                     <li>
                                         <a href="{{ route('maintenance.index') }}"
                                            style="{{ request()->routeIs('maintenance.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="fa fa-eye"></i> View
+                                            <i class="fa fa-eye"></i> Maintenance Requests
                                         </a>
                                     </li>
                                 @endif
                                 @if(Session::get('permissions')->contains('slug', 'create_maintenance'))
-                                    <li>
-                                        <a href="{{ route('maintenance.create') }}"
-                                           style="{{ request()->routeIs('maintenance.create') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="fa fa-plus"></i> Create Maintenance
-                                        </a>
-                                    </li>
+                                    
                                     <li>
                                         <a href="{{ route('maintenance.import') }}"
                                            style="{{ request()->routeIs('maintenance.import') ? 'color: ' . $brand_color . ' !important;' : '' }}">
@@ -350,14 +301,7 @@ $user = (Session::get('user'));
                         </a>
                     </li>
                 @endif
-                @if(Session::get('permissions')->contains('slug', 'create_complainst')||$user->is_system_admin===1)
-                    <li>
-                        <a href="{{ route('complaints.create') }}"
-                           style="{{ request()->routeIs('complaints.create') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                            <i class="fa fa-plus"></i> Create
-                        </a>
-                    </li>
-                @endif
+                
             </ul>
         </li>
     @endif
@@ -377,19 +321,12 @@ $user = (Session::get('user'));
                         <i class="fas fa-list-alt me-1"></i> Park Categories
                     </a>
                     <ul class="sub-menu">
-                        @if(Session::get('permissions')->contains('slug', 'create_park')||$user->is_system_admin===1)
-                            <li>
-                                <a href="{{ route('park.categories.create') }}"
-                                   style="{{ request()->routeIs('park.categories.create') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                    <i class="fas fa-plus me-1"></i> Create
-                                </a>
-                            </li>
-                        @endif
+                       
                         @if(Session::get('permissions')->contains('slug', 'read_park')||$user->is_system_admin===1)
                             <li>
                                 <a href="{{ route('park.categories.index') }}"
                                    style="{{ request()->routeIs('park.categories.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                    <i class="fas fa-eye me-1"></i> View
+                                    <i class="fas fa-eye me-1"></i> Car Park
                                 </a>
                             </li>
                         @endif
@@ -401,19 +338,12 @@ $user = (Session::get('user'));
                         <i class="fas fa-map-marker-alt me-1"></i> Park Locations
                     </a>
                     <ul class="sub-menu">
-                        @if(Session::get('permissions')->contains('slug', 'create_park')||$user->is_system_admin===1)
-                            <li>
-                                <a href="{{ route('park.models.create') }}"
-                                   style="{{ request()->routeIs('park.models.create') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                    <i class="fas fa-plus me-1"></i> Create
-                                </a>
-                            </li>
-                        @endif
+                       
                         @if(Session::get('permissions')->contains('slug', 'read_park')||$user->is_system_admin===1)
                             <li>
                                 <a href="{{ route('park.models.index') }}"
                                    style="{{ request()->routeIs('park.models.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                    <i class="fas fa-eye me-1"></i> View
+                                    <i class="fas fa-eye me-1"></i>Park Locations
                                 </a>
                             </li>
                         @endif
@@ -425,19 +355,12 @@ $user = (Session::get('user'));
                         <i class="fas fa-file-invoice-dollar me-1"></i> Park Taxes
                     </a>
                     <ul class="sub-menu">
-                        @if(Session::get('permissions')->contains('slug', 'create_park')||$user->is_system_admin===1)
-                            <li>
-                                <a href="{{ route('park.taxes.create') }}"
-                                   style="{{ request()->routeIs('park.taxes.create') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                    <i class="fas fa-plus me-1"></i> Create
-                                </a>
-                            </li>
-                        @endif
+                        
                         @if(Session::get('permissions')->contains('slug', 'read_park')||$user->is_system_admin===1)
                             <li>
                                 <a href="{{ route('park.taxes.index') }}"
                                    style="{{ request()->routeIs('park.taxes.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                    <i class="fas fa-eye me-1"></i> View
+                                    <i class="fas fa-eye me-1"></i> Park Taxes
                                 </a>
                             </li>
                         @endif
@@ -449,19 +372,12 @@ $user = (Session::get('user'));
                         <i class="fas fa-id-badge me-1"></i> Park Permits
                     </a>
                     <ul class="sub-menu">
-                        @if(Session::get('permissions')->contains('slug', 'create_park')||$user->is_system_admin===1)
-                            <li>
-                                <a href="{{ route('park.permits.create') }}"
-                                   style="{{ request()->routeIs('park.permits.create') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                    <i class="fas fa-plus me-1"></i> Create
-                                </a>
-                            </li>
-                        @endif
+                       
                         @if(Session::get('permissions')->contains('slug', 'read_park')||$user->is_system_admin===1)
                             <li>
                                 <a href="{{ route('park.permits.index') }}"
                                    style="{{ request()->routeIs('park.permits.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                    <i class="fas fa-eye me-1"></i> View
+                                    <i class="fas fa-eye me-1"></i> Park Permits
                                 </a>
                             </li>
                         @endif
@@ -503,19 +419,13 @@ $user = (Session::get('user'));
                 <span>ASB</span>
             </a>
             <ul class="sub-menu" aria-expanded="true">
-                @if(Session::get('permissions')->contains('slug', 'create_asb')||$user->is_system_admin===1)
-                    <li>
-                        <a href="{{ route('asb.create') }}"
-                           style="{{ request()->routeIs('asb.create') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                            <i class="fa fa-plus"></i> Create ASB
-                        </a>
-                    </li>
-                @endif
+               
+            
                 @if(Session::get('permissions')->contains('slug', 'read_asb'))
                     <li>
                         <a href="{{ route('asb.index') }}"
                            style="{{ request()->routeIs('asb.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                            <i class="fa fa-eye"></i> View ASB
+                            <i class="fa fa-eye"></i> ASB Records
                         </a>
                     </li>
                 @endif

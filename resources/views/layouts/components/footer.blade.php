@@ -89,3 +89,93 @@
 @endsection
 
 </script>
+<script>
+class SimpleSearchableSelect {
+    constructor(selector) {
+        this.elements = document.querySelectorAll(selector);
+        this.init();
+    }
+
+    init() {
+        this.elements.forEach(select => {
+            this.createUI(select);
+        });
+    }
+
+    createUI(select) {
+        const wrapper = document.createElement('div');
+        wrapper.classList.add('searchable-wrapper');
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.classList.add('searchable-input');
+        input.placeholder = 'Search...';
+        input.readOnly = false;
+
+        const dropdown = document.createElement('div');
+        dropdown.classList.add('searchable-dropdown');
+
+        const options = Array.from(select.options);
+
+        const buildDropdown = (filter = '') => {
+            dropdown.innerHTML = '';
+
+            options.forEach(option => {
+                if (!option.value) return;
+
+                if (
+                    option.text.toLowerCase().includes(filter.toLowerCase())
+                ) {
+                    const item = document.createElement('div');
+                    item.classList.add('searchable-item');
+                    item.textContent = option.text;
+                    item.dataset.value = option.value;
+
+                    item.addEventListener('click', () => {
+                        select.value = option.value;
+                        input.value = option.text;
+                        dropdown.style.display = 'none';
+
+                        select.dispatchEvent(new Event('change'));
+                    });
+
+                    dropdown.appendChild(item);
+                }
+            });
+        };
+
+        input.addEventListener('focus', () => {
+            dropdown.style.display = 'block';
+            buildDropdown();
+        });
+
+        input.addEventListener('input', (e) => {
+            buildDropdown(e.target.value);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!wrapper.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        wrapper.appendChild(input);
+        wrapper.appendChild(dropdown);
+
+        select.style.display = 'none';
+        select.parentNode.insertBefore(wrapper, select);
+        wrapper.appendChild(select);
+
+        // preload selected value
+        if (select.value) {
+            const selectedText = select.options[select.selectedIndex].text;
+            input.value = selectedText;
+        }
+    }
+}
+
+// INIT
+document.addEventListener('DOMContentLoaded', () => {
+    new SimpleSearchableSelect('.js-searchable');
+});
+</script>

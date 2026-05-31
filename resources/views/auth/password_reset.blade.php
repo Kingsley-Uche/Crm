@@ -14,7 +14,7 @@
 
             <!-- Left Column: Logo -->
             <div class="col-md-8 col-lg-4 col-xl-4 text-center">
-                <img src="{{ asset($brand['logo_url']) }}" class="img-fluid" alt="{{ $brandName }} Logo" style="max-width: 150px;">
+                 <img src="{{ $brandLogo }}" class="img-fluid" alt="{{ $brandName }} Logo" style="max-width: 150px;">
             </div>
 
             <!-- Right Column: Password Reset Form -->

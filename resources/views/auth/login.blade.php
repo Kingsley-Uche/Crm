@@ -3,18 +3,21 @@
 @section('content')
 
 <section class="vh-80 mt-5">
-    @php
-    $brand = session('brand_details') ?? cache('brand_details');
+   @php
+    $brand = session('brand_details') ?? cache('brand_details') ?? [];
 
-    $brandName = $brand['name'] ?? config('app.name');
-    $brandLogo = $brand['logo_url'] ?? asset('system_images/ctrlogo.png');
+    $brandName = $brand['name'] ?? config('app.name', 'Application');
+    $brandLogo = !empty($brand['logo_url'])
+        ? asset($brand['logo_url'])
+        : asset('system_images/ctrlogo.png');
+
     $brandColor = $brand['brand_color'] ?? '#074784';
 @endphp
     <div class="container-fluid h-custom">
         <div class="row d-flex justify-content-center align-items-center">
             <!-- Left Column: Image -->
             <div class="col-md-8 col-lg-4 col-xl-4 text-center">
-                <img src="{{ asset($brand['logo_url']) }}" class="img-fluid" alt="{{ $brandName }} Logo" style="max-width: 150px;">
+                <img src="{{ $brandLogo }}" class="img-fluid" alt="{{ $brandName }} Logo" style="max-width: 150px;">
             </div>
 
             <!-- Right Column: Upcube-Styled Login Form -->

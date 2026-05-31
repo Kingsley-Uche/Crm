@@ -29,6 +29,7 @@ use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\SubscriptionPlanController;
 use App\Http\Controllers\SubscriptionAccountController;
 use App\Http\Controllers\BrandController;
+use App\Http\Controllers\BranchController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -75,6 +76,24 @@ Route::middleware('subscription')->group(function () {
             Route::put('/{id}', [EstateOwnerController::class, 'update'])->name('estate_owners.update');
             Route::delete('/{id}', [EstateOwnerController::class, 'destroy'])->name('estate_owners.destroy');
         });
+
+        Route::prefix('branches')->group(function () {
+
+    Route::get('/', [BranchController::class, 'index'])->name('branches.index');
+
+    Route::get('/create', [BranchController::class, 'create'])->name('branches.create');
+
+    Route::post('/create', [BranchController::class, 'store'])->name('branches.store');
+
+    Route::get('/{id}/edit', [BranchController::class, 'edit'])->name('branches.edit');
+
+    Route::put('/{id}', [BranchController::class, 'update'])->name('branches.update');
+
+    Route::get('/{id}', [BranchController::class, 'show'])->name('branches.show');
+
+    Route::delete('/{id}', [BranchController::class, 'destroy'])->name('branches.destroy');
+
+});
 
         // Property routes
         Route::prefix('property')->group(function () {

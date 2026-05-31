@@ -85,3 +85,42 @@ i {
 
 
 </style>
+<style>
+.searchable-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.searchable-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.searchable-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #ddd;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 9999;
+    display: none;
+}
+
+.searchable-item {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.searchable-item:hover {
+    background: #f1f1f1;
+}
+
+.searchable-hidden {
+    display: none !important;
+}
+</style>

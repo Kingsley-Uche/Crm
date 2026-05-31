@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class LocationModel extends Model
 {
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'branch_id'];
     protected $table= 'location_models';
    
    
@@ -14,5 +14,10 @@ class LocationModel extends Model
 {
     return $this->hasMany(BlockModel::class, 'location_id');
 }
+
+    public function branch()
+    {
+        return $this->belongsTo(BranchModel::class, 'branch_id');
+    }
 
 }

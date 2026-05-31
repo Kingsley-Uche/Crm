@@ -10,7 +10,16 @@
                     {{ session('success') }}
                 </div>
             @endif
-
+@if ($errors->any())
+    <div class="alert alert-danger">
+        <strong>Please fix the following errors:</strong>
+        <ul class="mb-0 mt-2">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
             <div class="row mb-3">
                 <div class="col-12">
                     <div class="page-title-box d-sm-flex align-items-center justify-content-between px-3">
@@ -79,6 +88,21 @@
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
                         </div>
+                        <div class="col-md-6">
+                            <label for="user_type" class="form-label">User Type</label>
+                            <select name="user_type" id="user_type" class="form-select" required>
+                                <option value="">-- Select User Type --</option>
+                                <option value="1" {{ old('user_type') == '1' ? 'selected' : '' }}>System Admin</option>
+                                <option value="2" {{ old('user_type') == '2' ? 'selected' : '' }}>Property Manager</option>
+                            </select>
+                            @error('user_type')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
+                        </div>
+                    </div>
+                            @error('phone')
+                                <small class="text-danger">{{ $message }}</small>
+                            @enderror
 
                         <div class="col-md-6">
                             <label for="role_id" class="form-label">Assign Role</label>

@@ -30,6 +30,7 @@ class ViewServiceProvider extends ServiceProvider
                     
                     $userPermissions = $permissionsController->accessControl($user);
                     $subscriptionStatus = $permissionsController->checkSubscriptionStatus($user);
+                
                     
                     session([
                         'permissions' => $userPermissions,
