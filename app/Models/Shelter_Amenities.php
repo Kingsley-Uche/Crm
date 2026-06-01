@@ -13,7 +13,9 @@ class Shelter_Amenities extends Model
         'block_shelter_id',
         'amenity_id',
         'amenity_number',
-        'id_apartment_id'
+        'id_apartment_id',
+        'branch_id',
+        'location_models_id'
     ];
 
     // Relationship with Block_Shelter model (if necessary)
@@ -24,7 +26,7 @@ class Shelter_Amenities extends Model
 
 public function amenities()
 {
-    return $this->belongsTo(Amenities::class, 'amenity_id');
+    return $this->belongsTo(Amenities::class, 'amenity_id')->select('id', 'name');
 }
 
 

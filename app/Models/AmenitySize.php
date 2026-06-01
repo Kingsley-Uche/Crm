@@ -16,7 +16,8 @@ class AmenitySize extends Model
         'amenity_id',
         'apartment_id',
         'amenity_name',
-        'block_models_id',
+        'branch_id',
+        'location_models_id',
         'shelter_id',
     ];
 

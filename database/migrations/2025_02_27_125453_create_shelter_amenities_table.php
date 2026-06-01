@@ -18,6 +18,8 @@ public function up(): void
         $table->unsignedBigInteger('amenity_id'); // Foreign key to the amenities table
         $table->integer('amenity_number'); // The quantity of the amenity
         $table->unsignedBigInteger('id_apartment_id');
+        $table->unsignedBigInteger('branch_id')->nullable();
+        $table->unsignedBigInteger('location_models_id')->nullable();
         $table->timestamps();
 
         // Foreign key constraints

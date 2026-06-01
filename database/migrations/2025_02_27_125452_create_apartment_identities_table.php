@@ -14,10 +14,11 @@ return new class extends Migration
             $table->id();
             
             // Foreign key columns
-            $table->unsignedBigInteger('block_models_id');
-            $table->unsignedBigInteger('block_shelter_id');
-            $table->unsignedBigInteger('shelter_id');
+            $table->unsignedBigInteger('branch_id')->nullable();
+            $table->unsignedBigInteger('location_models_id')->nullable();
+            $table->unsignedBigInteger('shelter_id')->nullable();
             $table->unsignedBigInteger('pay_frequency_id')->nullable();
+            $table->unsignedBigInteger('landlord_id')->nullable();
             
             $table->string('tenancy_type')->nullable();
             
@@ -25,8 +26,6 @@ return new class extends Migration
             $table->decimal('fee', 20, 2)->nullable();
             $table->string('pro_sco_code')->nullable();
             $table->string('property_ref')->nullable();
-            $table->string('ownership')->nullable();
-            $table->string('admin_unit')->nullable();
             $table->string('unit_number')->nullable();
             $table->string('post_code')->nullable();
             $table->string('address')->nullable();
@@ -35,17 +34,18 @@ return new class extends Migration
             $table->string('unique_code', 16)->unique();
             
             // Foreign key constraints with references and onDelete cascade
-            $table->foreign('block_models_id')->references('id')->on('block_models')->onDelete('cascade');
-            $table->foreign('shelter_id')->references('id')->on('shelters')->onDelete('cascade');
-             $table->foreign('block_shelter_id')->references('id')->on('block_shelters')->onDelete('cascade');
+            $table->foreign('branch_id')->references('id')->on('branch_models')->onDelete('set null');
+            $table->foreign('location_models_id')->references('id')->on('location_models')->onDelete('set null');
+            $table->foreign('shelter_id')->references('id')->on('shelters')->onDelete('set null');
             $table->foreign('pay_frequency_id')->references('id')->on('payment_times')->onDelete('set null');
-            
+            $table->foreign('landlord_id')->references('id')->on('estate_owners')->onDelete('set null');
             // Indexes for foreign keys
-            $table->index('block_models_id');
-            $table->index('block_shelter_id');
+            $table->index('branch_id');
+            $table->index('location_models_id');
             $table->index('shelter_id');
             $table->index('pay_frequency_id');
-            
+            $table->index('landlord_id');
+
             // Timestamps
             $table->timestamps();
         });

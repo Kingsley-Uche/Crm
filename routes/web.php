@@ -99,9 +99,9 @@ Route::middleware('subscription')->group(function () {
         Route::prefix('property')->group(function () {
             Route::get('/', [PropertyController::class, 'blockIndex'])->name('property.index');
             Route::get('/store', [PropertyController::class, 'Create'])->name('property.create');
-            Route::post('/store', [PropertyController::class, 'storeBlock'])->name('property.store');
-            Route::get('/{id}', [PropertyController::class, 'showBlock'])->name('property.show');
-            Route::put('/{id}/update', [PropertyController::class, 'blockUpdate'])->name('property.update');
+            Route::post('/store', [PropertyController::class, 'storeApartment'])->name('property.store');
+            Route::get('/{location_id}/{shelter_id}', [PropertyController::class, 'showLocation'])->name('property.apartments');
+            Route::put('/{id}/update', [PropertyController::class, 'ApartmentUpdate'])->name('property.apartment.update');
             Route::delete('/{id}/delete', [PropertyController::class, 'blockDestroy'])->name('property.destroy');
             Route::get('/blocks/search', [PropertyController::class, 'search'])->name('property.search');
             Route::get('/blocks/import', [PropertyController::class, 'loadImport'])->name('property.import');

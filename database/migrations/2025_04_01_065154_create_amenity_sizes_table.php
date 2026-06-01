@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -11,33 +12,37 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('amenity_sizes', function (Blueprint $table) {
+
             $table->id();
-            $table->decimal('amenity_size', 8, 2); // Increased precision for better flexibility
-            $table->string('amenity_name'); 
-            
+
+            $table->decimal('amenity_size', 8, 2);
+            $table->string('amenity_name');
+
             $table->foreignId('amenity_id')
                   ->constrained('amenities')
-                  ->onDelete('cascade');
+                  ->cascadeOnDelete();
 
             $table->foreignId('apartment_id')
                   ->constrained('apartment_identities')
-                  ->onDelete('cascade');
-            
-            $table->foreignId('block_models_id')
-                  ->constrained('block_models')
-                  ->onDelete('cascade');
+                  ->cascadeOnDelete();
+
+            $table->foreignId('branch_id')
+                  ->nullable()
+                  ->constrained('branch_models')
+                  ->nullOnDelete();
+
+            $table->foreignId('location_models_id')
+                  ->nullable()
+                  ->constrained('location_models')
+                  ->nullOnDelete();
 
             $table->foreignId('shelter_id')
+                  ->nullable()
                   ->constrained('shelters')
-                  ->onDelete('cascade');
+                  ->nullOnDelete();
 
             $table->timestamps();
 
-            // Add indexes
-            $table->index('amenity_id');
-            $table->index('apartment_id');
-            $table->index('block_models_id');
-            $table->index('shelter_id');
             $table->index('amenity_name');
         });
     }

@@ -116,7 +116,7 @@ $user = (Session::get('user'));
                                     <li>
                                         <a href="javascript:void(0);" class="has-arrow"
                                            style="{{ request()->routeIs('property.create') || request()->routeIs('property.index')||$user->is_system_admin===1 ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="fas fa-house-user"></i> Building or Blocks
+                                            <i class="fas fa-house-user"></i> Apartments
                                         </a>
                                         <ul class="sub-menu" aria-expanded="true">
                                             @if(Session::get('permissions')->contains('slug', 'read_property')||$user->is_system_admin===1)
@@ -131,7 +131,7 @@ $user = (Session::get('user'));
                                                 <li>
                                                     <a href="{{ route('property.create') }}"
                                                        style="{{ request()->routeIs('property.create') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                                        <i class="far fa-plus-square"></i> Register a Block
+                                                        <i class="far fa-plus-square"></i> Register Apartment
                                                     </a>
                                                 </li>
                                                 <li>

@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 class ApartmentIdentity extends Model
 {
     protected $fillable = [
-        'block_models_id', 'shelter_id', 'block_shelter_id', 'unique_code', 'pay_frequency_id',
+        'branch_id', 'location_models_id', 'shelter_id',  'unique_code', 'pay_frequency_id','landlord_id',
         'fee', 'pro_sco_code', 'property_ref','ownership', 'unit_number', 'post_code', 'admin_unit','tenancy_type','address'
     ];
 
@@ -14,18 +14,18 @@ class ApartmentIdentity extends Model
     /**
      * Generate a unique code for the apartment identity
      *
-     * @param  int $block_id
-     * @param  int $shelter_id
+     * @param  int $branch_id
+     * @param  int $location_id
      * @return string
      */
-   public function generateUniqueCode($block_id, $shelter_id)
+   public function generateUniqueCode($branch_id, $location_id)
 {
     // Get the abbreviation from the .env file with a fallback (limit to 3 characters)
-    $app_abbr = substr(env('APP_ABRV', 'CTR'), 0, 3); // Default to 'CTR' if not set
+    $app_abbr = substr(env('APP_ABRV', 'proptech'), 0, 3); // Default to 'CTR' if not set
 
-    // Ensure block_id and shelter_id are fixed length (4 digits each)
-    $block_id = str_pad((int)$block_id, 4, '0', STR_PAD_LEFT);
-    $shelter_id = str_pad((int)$shelter_id, 4, '0', STR_PAD_LEFT);
+    // Ensure branch_id and location_id are fixed length (4 digits each)
+    $branch_id = str_pad((int)$branch_id, 4, '0', STR_PAD_LEFT);
+    $location_id = str_pad((int)$location_id, 4, '0', STR_PAD_LEFT);
 
     $maxAttempts = 10; // Prevent infinite loops
     $attempt = 0;
@@ -35,7 +35,7 @@ class ApartmentIdentity extends Model
         $random = str_pad(rand(1, 99999), 5, '0', STR_PAD_LEFT);
 
         // Concatenate parts: 3 (abbr) + 4 (block_id) + 4 (shelter_id) + 5 (random) = 16 characters
-        $unique_code = $app_abbr . $block_id . $shelter_id . $random;
+        $unique_code = $app_abbr . $branch_id . $location_id . $random;
 
         // Check if this code already exists in the database
         $exists = static::where('unique_code', $unique_code)->exists();
@@ -51,19 +51,14 @@ class ApartmentIdentity extends Model
 }
     /**
      * Relation with BlockShelter
-     */
-    public function blockShelter()
-    {
-        return $this->hasMany(BlockShelter::class, 'shelter_id', 'id');
-        
-    }
+    
 
-    /**
+
      * Relation with ShelterAmenities
      */
     public function shelterAmenities()
     {
-        return $this->hasMany(Shelter_Amenities::class, 'id_apartment_id', 'id');
+        return $this->hasMany(Shelter_Amenities::class, 'id_apartment_id', 'id')->select('id', 'id_apartment_id', 'amenity_id', 'amenity_number', 'branch_id');
        
     }
     public function amenitySize(){
@@ -77,7 +72,7 @@ class ApartmentIdentity extends Model
      */
     public function shelter()
     {
-        return $this->hasOne(Shelter::class, 'id', 'shelter_id');
+       return $this->belongsTo(Shelter::class, 'shelter_id')->where('is_active', 1)->select('id', 'name');
      
     }
     public function booking()
@@ -85,14 +80,32 @@ class ApartmentIdentity extends Model
     return $this->hasOne(BookingModel::class, 'shelter_id', 'shelter_id');
 }
 
-public function block(){
-     return $this->hasOne(BlockModel::class, 'id', 'block_models_id');
-}
+
 public function bookStatus(){
     return $this->hasOne(BookingModel::class, 'apartment_id', 'id');
 }
     
+    /**
+     * Relation with Landlord
+     */
+    public function landlord()
+    {
+        return $this->hasOne(EstateOwner::class, 'id', 'landlord_id')->select('id', 'fName','lName', 'email', 'phones');
+    }
 
+    /**
+     * Relation with LocationModel
+     */
+    public function location()
+    {
+        return $this->belongsTo(LocationModel::class, 'location_models_id')->select('id', 'name', 'branch_id');
+    }
+
+    //amenity size relation
+    public function amenitySizes()
+    {
+        return $this->hasMany(AmenitySize::class, 'apartment_id', 'id');
+    }
     
 
 }

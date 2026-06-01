@@ -18,6 +18,10 @@ class LocationModel extends Model
     public function branch()
     {
         return $this->belongsTo(BranchModel::class, 'branch_id');
-    }
 
+    }
+ public function apartments(){
+    return $this->hasMany(ApartmentIdentity::class, 'location_models_id')
+    ->select('id', 'branch_id', 'location_models_id','shelter_id','pay_frequency_id', 'landlord_id','address');
+ }
 }

@@ -42,7 +42,7 @@
                     <a href="{{ route('branches.create') }}" class="btn btn-success btn-sm">+ Create Branch</a>
                 </div>
 
-                <table id="branch-table" class="table dt-responsive nowrap w-100">
+                <table id="selection-datatable" class="table dt-responsive nowrap w-100">
                     <thead>
                         <tr>
                             <th>S/N</th>

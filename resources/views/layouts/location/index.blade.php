@@ -37,7 +37,7 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
+                    <table id="selection-datatable" class="table dt-responsive nowrap w-100">
                         <thead>
                             <tr>
                                 <th>SN</th>

@@ -5,11 +5,11 @@
     <div class="row">
         <div class="col-12">
             <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-                <h4 class="mb-sm-0">Buildings or Blocks</h4>
+                <h4 class="mb-sm-0">Apartments</h4>
                 <div class="page-title-right">
                     <ol class="breadcrumb m-0">
                         <li class="breadcrumb-item"><a href="javascript:void(0);">Registered</a></li>
-                        <li class="breadcrumb-item active">Buildings or Blocks</li>
+                        <li class="breadcrumb-item active">Apartments</li>
                     </ol>
                 </div>
             </div>
@@ -28,84 +28,143 @@
         </div>
     </div>
 
-    {{-- Blocks Container --}}
-    <div class="row" id="blocks-container">
-        @foreach($blocks as $block)
-            <div class="col-md-3 mb-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="dripicons-home"></i> {{ucwords( $block->block_title) }}<br>
-                            <i class="ri-function-line mr-1"></i>
-                            <a href="{{ route('property.show', $block->block_model_id) }}">
-                                <i class="ri-edit-fill" data-toggle="tooltip" title="Edit building"></i>
+    {{-- Location Container --}}
+<div class="row" id="locations-container">
+
+    @foreach($locations as $location)
+
+        <div class="col-md-6 col-lg-4 mb-4 searchable-item"
+     data-search="{{ strtolower($location['branch_name'].' '.$location['location_name']) }}">
+
+            <div class="card shadow-sm h-100">
+
+                <div class="card-header bg-success">
+    <div class="d-flex justify-content-between align-items-center">
+        
+        <div class="d-flex align-items-center ">
+            <i class="ri-building-line text-white me-2 fs-5"></i>
+            <span class="text-white fw-semibold ">
+                {{ ucwords($location['branch_name']) }}
+            </span>
+        </div>
+
+        <div class="d-flex align-items-center">
+            <i class="ri-map-pin-line text-white me-2 fs-5"></i>
+            <span class="text-white fw-semibold">
+                {{ ucwords($location['location_name']) }}
+            </span>
+        </div>
+
+    </div>
+</div>
+
+                <div class="card-body">
+
+                    @if(count($location['shelters']) > 0)
+
+                        @foreach($location['shelters'] as $shelter)
+
+                            <a href="{{ route('property.apartments', [
+                                'location_id' => $location['location_id'],
+                                'shelter_id'  => $shelter['shelter_id']
+                            ]) }}"
+                               class="text-decoration-none">
+
+                               <div class="border rounded p-3 mb-3 shelter-card shadow-sm"
+     data-search="{{ strtolower($shelter['shelter_name']) }}">
+
+    <div class="d-flex justify-content-between align-items-center">
+
+        <div class="d-flex align-items-center">
+
+            <i class="ri-home-4-line text-success fs-4 me-2"></i>
+
+            <div>
+                <div class="fw-bold">
+                    {{ ucwords($shelter['shelter_name']) }}
+                </div>
+
+                <small class="text-muted">
+                    Click to view apartments
+                </small>
+            </div>
+
+        </div>
+
+        <div class="d-flex align-items-center">
+
+            <span class="badge bg-primary me-2">
+                {{ number_format($shelter['total_apartments']) }}
+                Units
+            </span>
+
+            <i class="ri-arrow-right-circle-line text-success fs-4"></i>
+
+        </div>
+
+    </div>
+
+</div>
+
                             </a>
 
-                            <form action="{{ route('property.destroy', $block->block_model_id) }}" method="POST" class="d-inline delete-form">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-link p-0 m-0 delete-btn" aria-label="Delete a building">
-                                    <i class="ri-delete-bin-5-line text-danger" data-toggle="tooltip" title="Delete a building"></i>
-                                </button>
-                            </form>
-                        </h5>
-                        <p class="card-text mb-1">
-    <strong>Landlord:</strong> {{ $block->landlord->fName ?? 'N/A' }} {{ $block->landlord->lName ?? '' }}<br>
-    <strong>Location:</strong> {{ ucfirst(optional($block->location)->name) ?? 'N/A' }}<br>
-    <strong>Address:</strong> {{ \Illuminate\Support\Str::limit(ucfirst($block->block_address), 100) }}
-</p>
+                        @endforeach
 
-                        @if($block->shelters->isNotEmpty())
-                            @foreach($block->shelters as $shelter)
-                            @if($shelter->shelter_qty>0)
-                             
-                                        <p class="card-text mb-1">
-                                            <strong>{{ ucwords($shelter->shelter_name) }}:</strong> {{ $shelter->shelter_qty }} units
-                                            <a href="{{ route('apartment.index', ['block_id' => $block->block_model_id, 'shelter_id' =>$shelter->shelter_id]) }}" class="ms-2" data-toggle="tooltip" title="Edit {{$shelter->shelter_name }}">
-                                                <i class="fas fa-pen-square text-success"></i>
-                                            </a>
-                                        </p>
-                                @endif()   
-                            @endforeach
-                        @endif
-                    </div>
+                    @else
+
+                        <div class="alert alert-warning mb-0">
+                            No apartments found.
+                        </div>
+
+                    @endif
+
                 </div>
-            </div>
-        @endforeach
-    </div>
 
-    {{-- Pagination --}}
-    <div class="d-flex justify-content-end mt-3">
-        {{ $blocks->links('pagination::bootstrap-4') }}
-    </div>
+            </div>
+
+        </div>
+
+    @endforeach
+
+</div>
+  
 @endsection
 
 @section('scripts')
-    <script>
-        $(document).ready(function() {
-            // Tooltip initialization
-            $('[data-toggle="tooltip"]').tooltip();
+   <script>
+$(document).ready(function () {
 
-            // Confirm delete action
-            // $('.delete-form').on('submit', function(e) {
-            //     if (!confirm('Are you sure you want to delete this building?')) {
-            //         e.preventDefault();
-            //     }
-            // });
+    function filterLocations() {
 
-            // Initialize Select2
-            $('.select2').select2({
-                placeholder: "Select an option",
-                allowClear: true
+        let search = $('#search').val().toLowerCase();
+
+        $('.searchable-item').each(function () {
+
+            let locationText = $(this).data('search');
+
+            let shelterText = '';
+
+            $(this).find('.shelter-card').each(function () {
+                shelterText += ' ' + $(this).data('search');
             });
 
-            // Handle search button click
-            $('#search-btn').on('click', function() {
-                let searchTerm = $('#search').val();
-                // Perform AJAX search (You can implement it with Laravel AJAX or Livewire)
-            });
+            let combinedText = locationText + shelterText;
+
+            if (combinedText.includes(search)) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+
         });
-    </script>
+    }
+
+    $('#search-btn').on('click', filterLocations);
+
+    $('#search').on('keyup', filterLocations);
+
+});
+</script>
 
     <style>
         #ajax-preloader {

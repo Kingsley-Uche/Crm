@@ -17,7 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('created_by_user_type')->nullable(); // Admin user ID (nullable)
             $table->unsignedBigInteger('created_by')->nullable();
 
-            $table->string('is_active');
+            $table->tinyInteger('is_active')->default(1);
             $table->timestamps();
         });
     }

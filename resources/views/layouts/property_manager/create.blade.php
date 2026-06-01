@@ -114,7 +114,7 @@
         <div class="col-lg-12">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="card-title mb-4">Create New Block</h4>
+                    <h4 class="card-title mb-4">Create New Property</h4>
 
                     @if (session('success'))
                         <div class="alert alert-success" role="alert">{{ session('success') }}</div>
@@ -134,7 +134,7 @@
                         <ul class="nav nav-pills nav-justified mb-4" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <a class="nav-link active" id="block-details-tab" data-bs-toggle="tab" href="#block-details" role="tab" aria-controls="block-details" aria-selected="true">
-                                    Step 1: Block Details
+                                    Step 1: Property Details
                                 </a>
                             </li>
                             <li class="nav-item" role="presentation">
@@ -152,76 +152,161 @@
                             @csrf
 
                             <div class="tab-content twitter-bs-wizard-tab-content">
-                                <div class="tab-pane fade show active" id="block-details" role="tabpanel" aria-labelledby="block-details-tab">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label class="form-label" for="name">Block Name</label>
-                                                <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
-                                                @error('name')
-                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-    <div class="mb-3">
-        <label class="form-label" for="location_id">Location</label>
-        <div class="custom-select-wrapper">
-            <input type="text"
-                   class="custom-select-search @error('location_id') is-invalid @enderror"
-                   placeholder="Select Location"
-                   autocomplete="off"
-                   required>
+                               <div class="tab-pane fade show active"
+     id="block-details"
+     role="tabpanel"
+     aria-labelledby="block-details-tab">
 
-            <input type="hidden" name="location_id" id="location_id" value="{{ old('location_id') }}">
+    <div class="row">
+  {{-- Branch --}}
+       <div class="col-md-6">
+    <div class="mb-3">
+        <label class="form-label">Branch</label>
+
+        <div class="custom-select-wrapper" id="branch-wrapper">
+
+            <input type="text"
+                   class="custom-select-search @error('branch_id') is-invalid @enderror"
+                   placeholder="Search Branch..."
+                   autocomplete="off">
+
+            <input type="hidden"
+                   name="branch_id"
+                   id="branch_id"
+                   value="{{ old('branch_id') }}">
 
             <div class="custom-select-dropdown">
-                @foreach ($locations as $location)
+
+                @foreach($branches as $branch)
                     <div class="custom-select-option"
-                         data-value="{{ $location->id }}">
+                         data-value="{{ $branch->id }}">
+                        {{ $branch->name }}
+                    </div>
+                @endforeach
+
+            </div>
+
+        </div>
+
+        @error('branch_id')
+            <div class="invalid-feedback d-block">{{ $message }}</div>
+        @enderror
+    </div>
+</div>
+       
+        <div class="col-md-6">
+    <div class="mb-3">
+        <label class="form-label">Location</label>
+
+        <div class="custom-select-wrapper" id="location-wrapper">
+
+            <input type="text"
+                   class="custom-select-search @error('location_id') is-invalid @enderror"
+                   placeholder="Search Location..."
+                   autocomplete="off">
+
+            <input type="hidden"
+                   name="location_id"
+                   id="location_id"
+                   value="{{ old('location_id') }}">
+
+            <div class="custom-select-dropdown" id="location-dropdown">
+
+                @foreach($locations as $location)
+                    <div class="custom-select-option"
+                         data-value="{{ $location->id }}"
+                         data-branch="{{ $location->branch_id }}">
                         {{ $location->name }}
                     </div>
                 @endforeach
+
             </div>
 
-            @error('location_id')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
         </div>
+
+        @error('location_id')
+            <div class="invalid-feedback d-block">{{ $message }}</div>
+        @enderror
+    </div>
+</div>
+        </div>
+
+
+    <div class="row">
+
+      
+
+        {{-- Address --}}
+        <div class="col-md-6">
+            <div class="mb-3">
+
+                <label class="form-label" for="address">
+                    Address
+                </label>
+
+                <input type="text"
+                       class="form-control @error('address') is-invalid @enderror"
+                       id="address"
+                       name="address"
+                       value="{{ old('address') }}"
+                       required>
+
+                @error('address')
+                    <div class="invalid-feedback">
+                        {{ $message }}
+                    </div>
+                @enderror
+
+            </div>
+        </div>
+      <div class="col-md-6">
+    <div class="mb-3">
+
+        <label class="form-label">
+            Landlord
+        </label>
+
+        <div class="custom-select-wrapper">
+
+            <input type="text"
+                   class="custom-select-search @error('landlord_id') is-invalid @enderror"
+                   placeholder="Search Landlord..."
+                   autocomplete="off">
+
+            <input type="hidden"
+                   name="landlord_id"
+                   id="landlord_id"
+                   value="{{ old('landlord_id') }}">
+
+            <div class="custom-select-dropdown">
+
+                @foreach($landlords as $landlord)
+                    <div class="custom-select-option"
+                         data-value="{{ $landlord->id }}">
+                        {{ $landlord->fName }}
+                        {{ $landlord->lName }}
+                        ({{ $landlord->email }})
+                    </div>
+                @endforeach
+
+            </div>
+
+        </div>
+
+        @error('landlord_id')
+            <div class="invalid-feedback d-block">
+                {{ $message }}
+            </div>
+        @enderror
+
     </div>
 </div>
 
-                                    </div>
+    </div>
 
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label class="form-label" for="address">Address</label>
-                                                <input type="text" class="form-control @error('address') is-invalid @enderror" id="address" name="address" value="{{ old('address') }}" required>
-                                                @error('address')
-                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="mb-3">
-                                                <label class="form-label" for="landlord_id">Landlord</label>
-                                                <div class="custom-select-wrapper">
-                                                    <input type="text" class="custom-select-search @error('landlord_id') is-invalid @enderror" placeholder="Select Landlord" autocomplete="off" required>
-                                                    <input type="hidden" name="landlord_id" id="landlord_id" value="{{ old('landlord_id') }}">
-                                                    <div class="custom-select-dropdown">
-                                                        @foreach ($landlords as $landlord)
-                                                            <div class="custom-select-option" data-value="{{ $landlord->id }}">{{ $landlord->fName }} {{ $landlord->lName }}</div>
-                                                        @endforeach
-                                                    </div>
-                                                    @error('landlord_id')
-                                                        <div class="invalid-feedback">{{ $message }}</div>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+    
+
+</div>
 
                                 <div class="tab-pane fade" id="shelter-details" role="tabpanel" aria-labelledby="shelter-details-tab">
                                     <h5 class="mb-3">Shelter Types and Quantities</h5>
@@ -246,11 +331,26 @@
                                 </div>
                             </div>
 
-                            <ul class="pager wizard twitter-bs-wizard-pager-link mt-3">
-                                <li class="previous"><button type="button" class="btn btn-secondary">Previous</button></li>
-                                <li class="next"><button type="button" class="btn btn-success">Next</button></li>
-                                <li class="submit-form d-none"><button type="submit" class="btn btn-success">Save</button></li>
-                            </ul>
+                            <div class="d-flex justify-content-between align-items-center mt-4">
+
+    <button type="button"
+            class="btn btn-secondary previous-btn">
+        Previous
+    </button>
+
+    <div>
+        <button type="button"
+                class="btn btn-success next-btn">
+            Next
+        </button>
+
+        <button type="submit"
+                class="btn btn-success submit-btn d-none">
+            Save
+        </button>
+    </div>
+
+</div>
                         </form>
                     </div>
                 </div>
@@ -260,57 +360,59 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+
+
+
+        // Branch -> Location filtering
+        const branchInput = document.getElementById('branch_id');
+const locationDropdown = document.getElementById('location-dropdown');
+
+if (branchInput && locationDropdown) {
+
+    const allLocations = Array.from(
+        locationDropdown.querySelectorAll('.custom-select-option')
+    );
+
+    function filterLocationsByBranch() {
+
+        const branchId = branchInput.value;
+
+        allLocations.forEach(location => {
+
+            if (!branchId) {
+
+                location.style.display = 'none';
+                return;
+
+            }
+
+            location.style.display =
+                location.dataset.branch === branchId
+                ? 'block'
+                : 'none';
+
+        });
+
+    }
+
+    branchInput.addEventListener(
+        'change',
+        filterLocationsByBranch
+    );
+
+    filterLocationsByBranch();
+}
             // Custom select functionality
-            const selectWrappers = document.querySelectorAll('.custom-select-wrapper');
-            selectWrappers.forEach(wrapper => {
-                const searchInput = wrapper.querySelector('.custom-select-search');
-                const hiddenInput = wrapper.querySelector('input[type="hidden"]');
-                const dropdown = wrapper.querySelector('.custom-select-dropdown');
-                const options = wrapper.querySelectorAll('.custom-select-option');
-
-                // Show dropdown on input focus
-                searchInput.addEventListener('focus', () => {
-                    wrapper.classList.add('open');
-                });
-
-                // Filter options based on input
-                searchInput.addEventListener('input', () => {
-                    const filter = searchInput.value.toLowerCase();
-                    options.forEach(option => {
-                        const text = option.textContent.toLowerCase();
-                        option.style.display = text.includes(filter) ? '' : 'none';
-                    });
-                    wrapper.classList.add('open');
-                });
-
-                // Handle option selection
-                options.forEach(option => {
-                    option.addEventListener('click', () => {
-                        searchInput.value = option.textContent.trim();
-                        hiddenInput.value = option.dataset.value;
-                        wrapper.classList.remove('open');
-                    });
-                });
-            });
-
-            // Close dropdown when clicking outside
-            document.addEventListener('click', e => {
-                selectWrappers.forEach(wrapper => {
-                    if (!wrapper.contains(e.target)) {
-                        wrapper.classList.remove('open');
-                    }
-                });
-            });
+         
 
             // Wizard stepper logic
             const navLinks = document.querySelectorAll('.nav-link');
             const progressBar = document.getElementById('progressBar');
             const tabs = document.querySelectorAll('.tab-pane');
             const form = document.getElementById('blockForm');
-           const prevBtn = document.querySelector('.previous .btn-secondary');
-const nextBtn = document.querySelector('.next .btn-success');
-const submitBtn = document.querySelector('.submit-form button');
-
+           const prevBtn = document.querySelector('.previous-btn');
+           const nextBtn = document.querySelector('.next-btn');
+           const submitBtn = document.querySelector('.submit-btn');
 // add null checks
 if (!prevBtn || !nextBtn || !submitBtn) {
     console.error('Wizard buttons not found.');
@@ -334,12 +436,12 @@ if (!prevBtn || !nextBtn || !submitBtn) {
                 // Toggle button visibility
                 prevBtn.disabled = index === 0;
                 nextBtn.classList.toggle('d-none', index === navLinks.length - 1);
-                submitBtn.parentElement.classList.toggle('d-none', index !== navLinks.length - 1);
+                submitBtn.classList.toggle('d-none', index !== navLinks.length - 1);
             };
 
             // Validate current tab
             const validateTab = (tab) => {
-                const inputs = tab.querySelectorAll('input[required]');
+                const inputs = tab.querySelectorAll('input[required], select[required]');
                 let isValid = true;
                 inputs.forEach(input => {
                     if (!input.value.trim()) {
@@ -390,6 +492,62 @@ if (!prevBtn || !nextBtn || !submitBtn) {
                     document.getElementById('custom-preloader').classList.add('active');
                 }
             });
+
+            document.querySelectorAll('.custom-select-wrapper').forEach(wrapper => {
+
+    const searchInput =
+        wrapper.querySelector('.custom-select-search');
+
+    const hiddenInput =
+        wrapper.querySelector('input[type="hidden"]');
+
+    const dropdown =
+        wrapper.querySelector('.custom-select-dropdown');
+
+    searchInput.addEventListener('focus', () => {
+        wrapper.classList.add('open');
+    });
+
+    searchInput.addEventListener('input', () => {
+
+        const filter =
+            searchInput.value.toLowerCase();
+
+        dropdown.querySelectorAll('.custom-select-option')
+            .forEach(option => {
+
+                option.style.display =
+                    option.textContent
+                    .toLowerCase()
+                    .includes(filter)
+                    ? ''
+                    : 'none';
+
+            });
+
+        wrapper.classList.add('open');
+    });
+
+    dropdown.querySelectorAll('.custom-select-option')
+        .forEach(option => {
+
+           option.addEventListener('click', () => {
+
+    searchInput.value =
+        option.textContent.trim();
+
+    hiddenInput.value =
+        option.dataset.value;
+
+    hiddenInput.dispatchEvent(
+        new Event('change')
+    );
+
+    wrapper.classList.remove('open');
+});
+        });
+
+});
         });
     </script>
 @endsection

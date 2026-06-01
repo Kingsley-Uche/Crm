@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('shelters', function (Blueprint $table) {
             $table->id();
-            $table->string('is_active');
+            $table->tinyInteger('is_active')->default(1);
             $table->string('name');       // Name of the shelter (single room, flat, etc.)
             $table->unsignedBigInteger('created_by')->nullable(); // Admin user ID (nullable)
             $table->timestamps();
