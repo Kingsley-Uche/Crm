@@ -12,12 +12,10 @@ class BookingModel extends Model
     // Define the fillable fields
     protected $fillable = [
         'shelter_id', 
-        'block_model_id', 
         'payment_time_id', 
         'start_date', 
         'end_date', 
-        'apartment_id', 
-        'block_shelter_id', 
+        'apartment_id',  
         'booked_by_user_id', 
         'booked_by_user_type', // Assuming this is a string to indicate user type (e.g., admin, tenant)
         'tenant_id', 

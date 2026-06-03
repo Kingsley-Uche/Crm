@@ -61,7 +61,6 @@
                                 <th>Unit Number</th>
                                 <th>Payment Details</th>
                                 <th>Tenancy Type</th>
-                                <th>Ownership</th>
                                 <th>Account Type</th>
                                 <th>Options</th>
                             </tr>
@@ -82,7 +81,6 @@
                                         Balance: <b>£ {{ $account->balance }}</b>
                                     </td>
                                     <td>{{ ucfirst($account->Apartment->tenancy_type ?? '-') }}</td>
-                                    <td>{{ $account->Apartment->ownership ?? '-' }}</td>
                                     <td>{{ $account->account_type }}</td>
                                     <td>
                                         <div class="d-flex gap-1">

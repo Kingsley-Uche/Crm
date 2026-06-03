@@ -59,7 +59,6 @@
                                 <th>Payments</th>
                                 <th>Status</th>
                                 <th>Tenancy Type</th>
-                                <th>Ownership</th>
                                 <th>Escalation Policy</th>
                                 <th>Account Type</th>
                             </tr>
@@ -78,7 +77,7 @@
                                         @endif
                                     </td>
                                     <td>{{ $account->Apartment?->property_ref ?? '-' }}</td>
-                                    <td>{{ $account->Tenant?->full_name ??  }}</td>
+                                    <td>{{ $account->Tenant?->full_name}}</td>
                                     <td>{{ $account->Tenant?->occupant_email ?? '-' }}</td>
                                     <td>{{ $account->unit_number }}</td>
                                     <td><br>
@@ -97,7 +96,6 @@
                             </td>
 
                                     <td>{{ ucfirst($account->Apartment?->tenancy_type ?? '-') }}</td>
-                                    <td>{{ $account->Apartment?->ownership ?? '-' }}</td>
                                     <td>{{ $account->escalation_policy ?? '-' }}</td>
                                     <td>{{ $account->account_type }}</td>
                                 </tr>

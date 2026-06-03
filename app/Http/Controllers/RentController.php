@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class RentController extends Controller
 {
@@ -57,48 +59,61 @@ class RentController extends Controller
         return view('layouts.rent.create', compact('tenants', 'apartments'));
     }
 
-    public function store(Request $request)
-    {
-        $user = Session::get('user');
-        $permissions = Session::get('permissions');
+   public function store(Request $request)
+{
+    $user = Session::get('user');
+    $permissions = Session::get('permissions');
 
-        if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'create_rent')))) {
-            return redirect()->back()->with('error', 'Unauthorized access to rent creation.');
-        }
+    if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'create_rent')))) {
+        return redirect()->back()->with('error', 'Unauthorized access to rent creation.');
+    }
 
-        $validated = $request->validate([
-            'tenant_id'         => ['required', 'exists:tenants,id'],
-            'apartment_id'      => ['required', 'exists:apartment_identities,id'],
-            'unit_number'       => ['required', 'string'],
-            'start_date'        => ['required', 'date'],
-            'end_date'          => ['required', 'date', 'after_or_equal:start_date'],
-            'rent_fee'          => ['required', 'numeric', 'min:0'],
-            'payment_made'      => ['required', 'numeric', 'min:0'],
-            'account_type'      => ['required', 'string'],
-            'escalation_policy' => ['required', 'string'],
-            'payment_method'    => ['required', 'string'],
-        ]);
+    $validated = $request->validate([
+        'tenant_id'         => ['required', 'exists:tenants,id'],
+        'apartment_id'      => ['required', 'exists:apartment_identities,id'],
+        'unit_number'       => ['required', 'string'],
+        'start_date'        => ['required', 'date'],
+        'end_date'          => ['required', 'date', 'after_or_equal:start_date'],
+        'rent_fee'          => ['required', 'numeric', 'min:0'],
+        'payment_made'      => ['required', 'numeric', 'min:0'],
+        'account_type'      => ['required', 'string'],
+        'escalation_policy' => ['required', 'string'],
+        'payment_method'    => ['required', 'string'],
+    ]);
 
+    $validated['duration_months'] = Carbon::parse($validated['start_date'])
+        ->floatDiffInMonths(Carbon::parse($validated['end_date']));
 
-        $validated['duration_months'] = Carbon::parse($validated['start_date'])
-            ->floatDiffInMonths(Carbon::parse($validated['end_date']));
+    $validated['created_by'] = Auth::id();
 
-        $validated['created_by'] = Auth::id();
+    if ($this->hasActiveAccount($validated['apartment_id'])) {
+        return back()->withInput()->with('error', 'An active rent account already exists for the selected apartment.');
+    }
 
-        if ($this->hasActiveAccount($validated['apartment_id'])) {
-            return back()->withInput()->with('error', 'An active rent account already exists for the selected apartment.');
-        }
+    try {
+        DB::transaction(function () use (&$validated) {
+            $rentAccount = RentAccount::create($validated);
+            $validated['rent_account_id'] = $rentAccount->id;
 
-        $rentAccount = RentAccount::create($validated);
-        $validated['rent_account_id'] = $rentAccount->id;
+            $booking = $this->createBooking($validated, $validated['rent_fee']);
 
-        $booking = $this->createBooking($validated, $validated['rent_fee']);
-        $validated['booking_models_id'] = $booking->id;
-
-        RentCycle::create($validated);
+            RentCycle::create($validated);
+        });
 
         return redirect()->route('rent.active')->with('success', 'Rent account created successfully.');
+
+    } catch (\Exception $e) {
+        // Explicitly logging the full stack trace and request details for debugging
+        Log::error('Rent account creation failed during DB transaction.', [
+            'exception_message' => $e->getMessage(),
+            'user_id'           => Auth::id(),
+            'tenant_id'         => $validated['tenant_id'] ?? null,
+            'apartment_id'      => $validated['apartment_id'] ?? null,
+        ]);
+
+        return back()->withInput()->with('error', 'Something went wrong while creating the rent account. Please try again.');
     }
+}
 
     private function hasActiveAccount($apartment_id): bool
     {
@@ -144,7 +159,7 @@ class RentController extends Controller
     {
         $accounts = RentAccount::with([
             'rentCycles:id,rent_account_id,apartment_id,tenant_id,rent_fee,payment_method,payment_made',
-            'apartment:id,tenancy_type,pro_sco_code,property_ref,ownership,admin_unit,address,post_code,unique_code',
+            'apartment:id,tenancy_type,pro_sco_code,property_ref,address,post_code,unique_code',
             'tenant:id,full_name,occupant_email,date_of_birth'
         ])
         ->select('id', 'tenant_id', 'apartment_id', 'unit_number', 'start_date', 'account_type', 'status')
@@ -199,8 +214,8 @@ class RentController extends Controller
         $referrer = $request->headers->get('referer');
 
         $rent_history = RentCycle::with([
-            'Apartment:id,tenancy_type,pro_sco_code,property_ref,ownership,admin_unit,address,post_code,unique_code',
-            'Tenant:id,first_name,last_name,occupant_email,date_of_birth'
+            'Apartment:id,tenancy_type,pro_sco_code,property_ref,address,post_code,unique_code',
+            'Tenant:id,full_name,occupant_email,date_of_birth'
         ])
         ->select('id', 'tenant_id', 'apartment_id', 'unit_number', 'start_date', 'end_date', 'status',
             'account_type', 'duration_months', 'rent_fee', 'payment_made', 'payment_method',
@@ -247,19 +262,18 @@ class RentController extends Controller
                 'message' => 'Unauthorized access to booking creation.'
             ], 403);
         }
-        $apartment = ApartmentIdentity::select('id', 'shelter_id', 'block_models_id', 'block_shelter_id')
+        $apartment = ApartmentIdentity::select('id', 'shelter_id')
             ->findOrFail($validated['apartment_id']);
 
         return BookingModel::create([
             'shelter_id' => $apartment->shelter_id,
-            'block_model_id' => $apartment->block_models_id,
             'payment_time_id' => null,
             'start_date' => $validated['start_date'],
             'end_date' => $validated['end_date'],
             'apartment_id' => $validated['apartment_id'],
-            'block_shelter_id' => $apartment->block_shelter_id,
             'booked_by_user_id' => Auth::id(),
             'tenant_id' => $validated['tenant_id'],
+            'booked_by_user_type' => Auth::user()->user_type, // Assuming this is a string to indicate user type (e.g., admin, tenant)
             'updated_by_user_id' => Auth::id(),
             'fee' => $fee,
         ]);

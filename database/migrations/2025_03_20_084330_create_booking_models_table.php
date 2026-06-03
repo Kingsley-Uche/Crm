@@ -19,7 +19,6 @@ return new class extends Migration
         $table->date('start_date');
         $table->date('end_date');
         $table->unsignedBigInteger('apartment_id');
-        $table->unsignedBigInteger('block_shelter_id'); // If nullable is necessary
         $table->unsignedBigInteger('booked_by_user_id');
         $table->string('booked_by_user_type'); // Assuming this is a string to indicate user type (e.g., admin, tenant)
         $table->unsignedBigInteger('tenant_id'); // Making it nullable
@@ -30,9 +29,7 @@ return new class extends Migration
         
         // Foreign key constraints
         $table->foreign('shelter_id')->references('id')->on('shelters')->onDelete('cascade');
-        $table->foreign('block_model_id')->references('id')->on('block_models')->onDelete('cascade');
         $table->foreign('tenant_id')->references('id')->on('tenants')->onDelete('cascade');
-        $table->foreign('block_shelter_id')->references('id')->on('block_shelters');
         // Add more foreign keys as needed
     });
 }

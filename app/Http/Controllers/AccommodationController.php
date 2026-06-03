@@ -23,6 +23,7 @@ public function index()
 {
     $user = Session::get('user');
     $permissions = Session::get('permissions');
+    
 
     if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'read_apartments')))) {
         return redirect()->back()->with(['error' => 'Unauthorized access']);
@@ -32,11 +33,38 @@ public function index()
     $stateLocalGvtMap = [];
 
     // Get booked shelters and their block_model_id
-    $bookedShelters = BookingModel::select('shelter_id', 'apartment_id', 'block_model_id', \DB::raw('COUNT(*) as booked_count'))
-        ->where('end_date', '>', \Carbon\Carbon::today())->where('is_cancelled', false)
-        ->groupBy('shelter_id', 'block_model_id', 'apartment_id')
-        ->get()
-        ->groupBy('shelter_id');
+$bookedShelters = BookingModel::select('shelter_id', 'apartment_id', \DB::raw('COUNT(*) as booked_count'))
+    ->where('end_date', '>', \Carbon\Carbon::today())->where('is_cancelled', false)
+    ->groupBy('shelter_id', 'apartment_id')
+    ->get()
+    ->groupBy('shelter_id');
+
+$apartmentAndshelters = Shelter::select('id', 'name')
+    ->with('apartments:id,shelter_id')
+    ->where('is_active', '=', 1)
+    ->get();
+
+$apartmentAndshelters->map(function ($shelter) use ($bookedShelters) {
+    // 1. Count total apartments in this shelter
+    $shelter->apartment_count = $shelter->apartments ? $shelter->apartments->count() : 0;
+    
+    // 2. Calculate the total booked apartments for this shelter
+    // Check if this shelter has any active bookings in our grouped collection
+    if ($bookedShelters->has($shelter->id)) {
+        // Sum up the 'booked_count' from all the booked apartments under this shelter
+        $shelter->booked_count = $bookedShelters->get($shelter->id)->sum('booked_count');
+    } else {
+        $shelter->booked_count = 0;
+    }
+
+    return $shelter;
+});
+
+// Optional: test the output
+dd($apartmentAndshelters->toArray());
+
+// If you want to see the result with the new counts before dying:
+
 
     // Eager load necessary relationships
     Shelter::with([
