@@ -30,112 +30,48 @@ public function index()
     }
 
     $accom = [];
-    $stateLocalGvtMap = [];
 
     // Get booked shelters and their block_model_id
-$bookedShelters = BookingModel::select('shelter_id', 'apartment_id', \DB::raw('COUNT(*) as booked_count'))
-    ->where('end_date', '>', \Carbon\Carbon::today())->where('is_cancelled', false)
-    ->groupBy('shelter_id', 'apartment_id')
-    ->get()
-    ->groupBy('shelter_id');
+$bookedApartments = BookingModel::where('end_date', '>', now())
+    ->where('is_cancelled', false)
+    ->pluck('apartment_id')
+    ->toArray();
 
-$apartmentAndshelters = Shelter::select('id', 'name')
-    ->with('apartments:id,shelter_id')
-    ->where('is_active', '=', 1)
-    ->get();
+$accom = Shelter::with([
+    'apartments.location'
+])
+->where('is_active', 1)
+->get()
+->map(function ($shelter) use ($bookedApartments) {
 
-$apartmentAndshelters->map(function ($shelter) use ($bookedShelters) {
-    // 1. Count total apartments in this shelter
-    $shelter->apartment_count = $shelter->apartments ? $shelter->apartments->count() : 0;
-    
-    // 2. Calculate the total booked apartments for this shelter
-    // Check if this shelter has any active bookings in our grouped collection
-    if ($bookedShelters->has($shelter->id)) {
-        // Sum up the 'booked_count' from all the booked apartments under this shelter
-        $shelter->booked_count = $bookedShelters->get($shelter->id)->sum('booked_count');
-    } else {
-        $shelter->booked_count = 0;
-    }
+    $locations = $shelter->apartments
+        ->groupBy('location_id')
+        ->map(function ($apartments) use ($bookedApartments) {
 
-    return $shelter;
+            return [
+                'location_id'   => $apartments->first()->location?->id,
+                'location_name' => $apartments->first()->location?->name ?? 'Unknown',
+                'count'         => $apartments->count(),
+                'booked'        => $apartments
+                    ->whereIn('id', $bookedApartments)
+                    ->count(),
+            ];
+        })
+        ->values();
+
+    return [
+        'shelter_id'   => $shelter->id,
+        'name'         => $shelter->name,
+        'qty'          => $shelter->apartments->count(),
+        'booked'       => $shelter->apartments
+                            ->whereIn('id', $bookedApartments)
+                            ->count(),
+        'locations'    => $locations,
+    ];
 });
 
-// Optional: test the output
-dd($apartmentAndshelters->toArray());
+return view('layouts.accommodations.index', compact('accom'));
 
-// If you want to see the result with the new counts before dying:
-
-
-    // Eager load necessary relationships
-    Shelter::with([
-        'blockShelters' => function ($query) {
-            $query->select('id', 'shelter_id', 'shelter_qty', 'block_models_id', 'estate_owner_id')
-                ->where('shelter_qty', '>', 0);
-        },
-        'blockShelters.estateOwner' => function ($query) {
-            $query->select('id', 'fName', 'lName', 'email', 'phones');
-        },
-        'blockShelters.block' => function ($query) {
-            $query->select('id', 'name', 'address', 'location_id');
-        },
-        'blockShelters.block.location' => function ($query) {
-            $query->select('id', 'name');
-        }
-    ])->chunk(1000, function ($shelters) use (&$accom, $bookedShelters) {
-        foreach ($shelters as $shelter) {
-            if (!isset($accom[$shelter->id])) {
-                $accom[$shelter->id] = [
-                    'name' => $shelter->name,
-                    'shelter_id' => $shelter->id,
-                    'qty' => 0,
-                    'block_ids' => [],
-                    'blocks' => [],
-                    'booked' => 0,
-                ];
-            }
-
-            foreach ($shelter->blockShelters as $blockShelter) {
-                $accom[$shelter->id]['qty'] += (int) $blockShelter->shelter_qty;
-
-                // Check if the shelter has booked shelters
-                if (isset($bookedShelters[$shelter->id])) {
-                    $bookedShelterData = $bookedShelters[$shelter->id]->firstWhere('block_model_id', $blockShelter->block_models_id);
-                    if ($bookedShelterData) {
-                        $accom[$shelter->id]['booked'] += $bookedShelterData->booked_count;
-                        $accom[$shelter->id]['booked_data'][] = [
-                            'block_model_id' => $bookedShelterData->block_model_id,
-                            'shelter_id' => $bookedShelterData->shelter_id,
-                            'apartment_id' => $bookedShelterData->apartment_id,
-                            'booked_count' => $bookedShelterData->booked_count,
-                        ];
-                    }
-                }
-
-                if ($blockShelter->block) {
-                    $accom[$shelter->id]['blocks'][] = [
-                        'block_name' => $blockShelter->block->name,
-                        'block_id' => $blockShelter->block_models_id,
-                        'shelter_name' => $shelter->name,
-                        'shelter_qty' => $blockShelter->shelter_qty,
-                        'address' => $blockShelter->block->address ?? null,
-                        'location' => $blockShelter->block->location ? [
-                            'id' => $blockShelter->block->location->id,
-                            'name' => $blockShelter->block->location->name,
-                        ] : null,
-                        'landlord_details' => $blockShelter->estateOwner ? [
-                            'fName' => $blockShelter->estateOwner->fName,
-                            'lName' => $blockShelter->estateOwner->lName,
-                            'email' => $blockShelter->estateOwner->email,
-                            'phones' => $blockShelter->estateOwner->phones,
-                        ] : null,
-                        'booked_count' => isset($bookedShelterData) ? $bookedShelterData->booked_count : 0,
-                    ];
-                }
-            }
-        }
-    });
-
-    return view('layouts.accommodations.index', ['accom' => $accom]);
 }
 
 public function accomBlock(Request $request)

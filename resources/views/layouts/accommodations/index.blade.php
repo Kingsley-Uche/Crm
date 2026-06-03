@@ -41,86 +41,85 @@
                                 <span class="text-danger"> &#9679;</span><i class="fa fa-calendar-check me-1" aria-hidden="true"></i>Booked: <span class="badge bg-danger"> 0</span>
                             @endif
                         </p>
+<div class="accordion-body">
+    <div class="table-responsive">
+       <div class="accordion mt-3" id="accordion-{{ $acc['shelter_id'] }}">
+    <div class="accordion-item">
 
-                        <div id="accordion-{{ $acc['shelter_id'] }}" class="accordion">
-                            <div class="accordion-item border-0">
-                                <h2 class="accordion-header" id="heading-{{ $acc['shelter_id'] }}">
-                                    <button class="accordion-button collapsed bg-white" 
-                                            type="button" 
-                                            data-bs-toggle="collapse" 
-                                            data-bs-target="#collapse-{{ $acc['shelter_id'] }}"
-                                            aria-expanded="false" 
-                                            aria-controls="collapse-{{ $acc['shelter_id'] }}">
-                                        <i class="fas fa-eye me-2"></i> View Details
-                                    </button>
-                                </h2>
-                                
-                                <div id="collapse-{{ $acc['shelter_id'] }}" 
-                                     class="accordion-collapse collapse" 
-                                     aria-labelledby="heading-{{ $acc['shelter_id'] }}"
-                                     data-bs-parent="#accordion-{{ $acc['shelter_id'] }}">
-                                    <div class="accordion-body p-0">
-                                        <div class="table-responsive">
-                                            <table class="table table-striped mb-0">
-                                                <tbody>
-                                                    @foreach($acc['blocks'] as $block)
-                                                        <tr>
-                                                            <td>
-                                                                <div class="d-flex flex-column small-text">
-                                                                    <span class="mb-1">
-                                                                        <i class="fas fa-building me-2 text-muted"></i>
-                                                                        <strong>Block :</strong> {{ ucwords($block['block_name']) }}
-                                                                    </span>
-                                                                    <span class="mb-1">
-                                                                        <i class="fas fa-home me-2 text-muted"></i>
-                                                                        <strong>Shelter:</strong> {{ ucfirst($block['shelter_name']) }}
-                                                                    </span>
-                                                                    <span class="mb-1">
-                                                                        <i class="ri-numbers-line"></i></i>
-                                                                        <span class="badge bg-warning"> {{ $block['shelter_qty'] }} </span>
-                                                                           <i class=" far fa-calendar-check me-1" aria-hidden="true"></i>
-                                                                         <span class="badge bg-danger"> {{ $block['booked_count'] }}</span>
-                                                                    </span>
-                                                                    @if($block['location'])
-                                                                        <span class="mb-1">
-                                                                            <i class="fas fa-map-marker-alt me-2 text-muted"></i>
-                                                                            <strong>Location:</strong> {{ ucwords($block['location']['name']) }}
-                                                                        </span>
-                                                                    @endif
-                                                                    <span class="mb-1">
-                                                                        <i class="fa fa-address-card me-2 text-muted"></i>
-                                                                        <strong>Address:</strong> {{ucwords( $block['address']) }}
-                                                                    </span>
-                                                                    @if($block['landlord_details'])
-                                                                        <span class="mb-1">
-                                                                            <i class="fas fa-user me-2 text-muted"></i>
-                                                                            <strong>Landlord:</strong> 
-                                                                            {{ $block['landlord_details']['fName'] }} 
-                                                                            {{ $block['landlord_details']['lName'] }}
-                                                                        </span>
-                                                                        <span class="mb-1">
-                                                                            <i class="fas fa-envelope me-2 text-muted"></i>
-                                                                            <strong>Email:</strong> {{ $block['landlord_details']['email'] }}
-                                                                        </span>
-                                                                        <span>
-                                                                            <i class="fas fa-phone me-2 text-muted"></i>
-                                                                            <strong>Phone:</strong> {{ $block['landlord_details']['phones'] }}
-                                                                        </span>
-                                                                      <div class="d-flex justify-content-end"><a class="btn btn-success btn-sm fas fa-external-link-alt"
-                                                                      href="{{ route('accommodation.block', ['block_id' => $block['block_id'], 'shelter_id' => $acc['shelter_id']]) }}" 
-                                                                      data-bs-toggle="tooltip" title="Visit this"></a></div>
-                                                                    @endif
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+        <h2 class="accordion-header" id="heading-{{ $acc['shelter_id'] }}">
+            <button class="accordion-button collapsed"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#collapse-{{ $acc['shelter_id'] }}"
+                    aria-expanded="false"
+                    aria-controls="collapse-{{ $acc['shelter_id'] }}">
+                <i class="fas fa-eye me-2"></i>
+                View Locations
+            </button>
+        </h2>
+
+        <div id="collapse-{{ $acc['shelter_id'] }}"
+             class="accordion-collapse collapse"
+             aria-labelledby="heading-{{ $acc['shelter_id'] }}"
+             data-bs-parent="#accordion-{{ $acc['shelter_id'] }}">
+
+            <div class="accordion-body">
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm">
+                        <thead>
+                            <tr>
+                                <th>Location</th>
+                                <th>Total</th>
+                                <th>Booked</th>
+                                <th>Available</th>
+                                <th>More</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($acc['locations'] as $location)
+                                <tr>
+                                    <td>{{ $location['location_name'] }}</td>
+                                    <td>
+                                        <span class="badge bg-success">
+                                            {{ $location['count'] }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger">
+                                            {{ $location['booked'] }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-warning">
+                                            {{ $location['count'] - $location['booked'] }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ route('accommodation.location.details', ['shelter_id' => $acc['shelter_id'], 'location_id' => $location['location_id']]) }}"
+                                           class="btn btn-sm btn-primary">
+                                            View Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center">
+                                        No locations found
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+    </div>
+</div>
                     </div>
                 </div>
             </div>
