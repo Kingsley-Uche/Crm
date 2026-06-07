@@ -96,7 +96,7 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <a href="{{ route('accommodation.location.details', ['shelter_id' => $acc['shelter_id'], 'location_id' => $location['location_id']]) }}"
+                                        <a href="{{ route('accommodation.location', ['shelter_id' => $acc['shelter_id'], 'location_id' => $location['location_id']]) }}"
                                            class="btn btn-sm btn-primary">
                                             View Details
                                         </a>

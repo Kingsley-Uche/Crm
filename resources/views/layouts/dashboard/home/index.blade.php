@@ -1,205 +1,188 @@
-
 @extends('layouts.dashboard.landpage')
-    <script src="assets/libs/apexcharts/apexcharts.min.js"></script
-@section('content')
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-        @if (session('success'))
-    <div class="alert alert-success">
-        {{ session('success') }}
-    </div>
-@endif
-</div>
-    </div>
-</div>
 
-  <!-- start page title -->
-  <div class="row">
-    <div class="col-12">
-        <div class="page-title-box d-sm-flex align-items-center justify-content-between">
-            <h4 class="mb-sm-0">Dashboard</h4>
-            <div class="page-title-right">
+@section('content')
+
+<div class="container-fluid">
+
+    {{-- ================= HEADER ================= --}}
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="page-title-box d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Executive Dashboard</h4>
                 <ol class="breadcrumb m-0">
-                    <li class="breadcrumb-item"><a href="javascript: void(0);">Home</a></li>
+                    <li class="breadcrumb-item">Home</li>
                     <li class="breadcrumb-item active">Analytics</li>
                 </ol>
             </div>
         </div>
     </div>
-</div>
 
 
-<div class="row">
-                            <div class="col-xl-3 col-md-6">
-                              <div class="card">
-    <div class="card-body">
-        <div class="d-flex mb-3">
-            <div class="flex-grow-1">
-                <p class="text-truncate font-size-14 mb-2">Total Blocks</p>
-                <h4 class="mb-0 text-success">{{ $totalBlocks }}</h4>
+    {{-- ================= KPI CARDS ================= --}}
+    <div class="row g-3">
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Incomplete Repairs</p>
+                    <h3 class="text-danger">{{ $total_uncompleted }}</h3>
+                </div>
             </div>
-            <div class="avatar-sm">
-    <span class="avatar-title bg-light text-success rounded-3">
-        <i class="ri-home-4-line font-size-24 text-black"></i>
-    </span>
-</div>
-
         </div>
 
-        @if(!empty($shelterTypeCounts))
-            <hr>
-            <p class="text-truncate font-size-14 mb-2 text-center"><b>Shelter Types</b></p>
-            <ul class="list-unstyled mb-0">
-                @foreach ($shelterTypeCounts as $type => $count)
-                    <li class="d-flex justify-content-between py-1">
-                        <span>{{ ucfirst($type) }}</span>
-                        <span class="fw-bold ">{{ $count }}</span>
-                    </li>
-                @endforeach
-            </ul>
-        @else
-            <p class="text-muted mt-3">No shelter types available.</p>
-        @endif
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Total Voids</p>
+                    <h3 class="text-warning">{{ $voids->sum() }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Active Tenants</p>
+                    <h3 class="text-success">{{ $tenants }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <p class="text-muted mb-1">Locations</p>
+                    <h3 class="text-primary">{{ $locations }}</h3>
+                </div>
+            </div>
+        </div>
+
     </div>
-</div>
-
-                            </div><!-- end col -->
-                            <div class="col-xl-3 col-md-6">
-    <div class="card">
-    <div class="card-body">
-        <div class="d-flex mb-3">
-            <div class="flex-grow-1">
-                <p class="text-truncate font-size-14 mb-2">Total Incomplete Repairs</p>
-                <h4 class="mb-0 text-danger">
-                    {{ 
-                        (int)($total_uncompleted)
-                    }}
-                </h4>
-            </div>
-          <div class="avatar-sm">
-                <span class="avatar-title bg-light text-primary rounded-3">
-                    <i class="ri-tools-line font-size-24"></i>  
-                </span>
-            </div>
-        </div>
-
-        @if(!empty($repairProgressCounts))
-                     <hr>
-            <p class="text-truncate font-size-14 mb-2 text-center"><b>Repair Stage</b></p>
-            <ul class="list-unstyled mb-0">
-                @foreach($repairProgressCounts as $status => $count)
-                    <li class="d-flex justify-content-between py-1">
-                        <span>{{ $status ?: 'Unknown' }}</span>
-                        <span class="text-muted fw-bold">{{ $count }}</span>
-                    </li>
-                @endforeach
-            </ul>
-        @else
-            <p class="text-muted mt-3">No repair data available.</p>
-        @endif
-    </div><!-- end card-body -->
-</div><!-- end card -->
 
 
+    {{-- ================= SECOND ROW ================= --}}
+    <div class="row mt-3 g-3">
 
+        {{-- Shelter Types --}}
+        <div class="col-xl-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
 
-                            </div><!-- end col -->
-                            <div class="col-xl-3 col-md-6">
-                                <div class="card">
-    <div class="card-body">
-        <div class="d-flex mb-3">
-            <div class="flex-grow-1">
-                <p class="text-truncate font-size-14 mb-2">Total Voids</p>
-                <h4 class="mb-0 text-warning">{{ $voids->sum() }}</h4>
-            </div>
-            <div class="avatar-sm">
-                <span class="avatar-title bg-light text-danger rounded-3">
-                    <i class="ri-indeterminate-circle-line font-size-24 text-black"></i>
+                    <h6 class="mb-3">Shelter Portfolio Distribution</h6>
 
-                </span>
+                    <ul class="list-group list-group-flush">
+                        @foreach ($shelterTypeCounts as $item)
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>{{ $item->shelter_name }}</span>
+                                <strong>{{ $item->total }}</strong>
+                            </li>
+                        @endforeach
+                    </ul>
+
+                </div>
             </div>
         </div>
 
-        @if($voids->isNotEmpty())
-            <hr>
-            <p class="text-truncate font-size-14 mb-2 text-center"><strong>Property Type</strong></p>
-            <ul class="list-unstyled mb-0">
-                @foreach ($voids as $type => $count)
-                    <li class="d-flex justify-content-between py-1">
-                        <span>{{ ucfirst($type) }}</span>
-                        <span class="fw-bold">{{ $count }}</span>
-                    </li>
-                @endforeach
-            </ul>
-        @else
-            <p class="text-muted mt-3">No voids recorded.</p>
-        @endif
+
+        {{-- Repairs --}}
+        <div class="col-xl-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+
+                    <h6 class="mb-3">Repair Lifecycle Status</h6>
+
+                    <ul class="list-group list-group-flush">
+                        @foreach($repairProgressCounts as $status => $count)
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>{{ ucfirst($status) }}</span>
+                                <strong>{{ $count }}</strong>
+                            </li>
+                        @endforeach
+                    </ul>
+
+                </div>
+            </div>
+        </div>
+
+
+        {{-- ================= OCCUPANCY RATE (FIXED PIE CHART) ================= --}}
+        <div class="col-xl-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+
+                    <h6 class="mb-3">Occupancy Rate by Shelter</h6>
+
+                    <div id="occupancy_chart"></div>
+
+                </div>
+            </div>
+        </div>
+
     </div>
-</div>
 
-                            </div><!-- end col -->
-                            <div class="col-xl-3 col-md-6">
-                              <div class="card">
-    <div class="card-body">
-        <div class="d-flex">
-            <div class="flex-grow-1">
-                <p class="text-truncate font-size-14 mb-2">Tenants</p>
-                <h4 class="mb-2">{{ $tenants }}</h4>
+
+    {{-- ================= BOOKINGS CHART ================= --}}
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+
+                    <h6 class="mb-3">Bookings Overview (Annual Trend)</h6>
+                    <div id="area_chart"></div>
+
+                </div>
             </div>
-            <div class="avatar-sm">
-                <span class="avatar-title bg-light text-success rounded-3">
-                    <i class="ri-user-line font-size-24 text-black"></i>  
-                </span>
-            </div>
-        </div>                                              
-    </div><!-- end cardbody -->
-</div><!-- end card -->
-
-                            </div><!-- end col -->
-                        </div><!-- end row -->
-
-<div class='row'>
-    
-    <div class='col-12 mb-2'>
-        <div class="card-body py-0 px-2">
-            <h6 class='title'>Bookings</h6>
-            <div id="area_chart" class="apex-charts bg-white" dir="ltr"></div>
         </div>
     </div>
+
 </div>
-                        
 
 @endsection
-@section('scripts')
-<script src="{{ asset('assets/libs/apexcharts/apexcharts.min.js') }}"></script>
-<script>
-    var options = {
-        chart: {
-            type: 'area',
-            height: 350,
-        },
-        series: [{
-            name: 'Bookings',
-            data: @json($booked['data'])
-        }],
-        xaxis: {
-            categories: @json($booked['labels']),
-        },
-        dataLabels: {
-            enabled: false
-        },
-        stroke: {
-            curve: 'smooth'
-        },
-        tooltip: {
-            x: {
-                format: 'MMM'
-            },
-        },
-    };
 
-    var chart = new ApexCharts(document.querySelector("#area_chart"), options);
-    chart.render();
+
+{{-- ================= SCRIPTS ================= --}}
+@section('scripts')
+
+<script src="{{ asset('assets/libs/apexcharts/apexcharts.min.js') }}"></script>
+
+<script>
+
+/* ================= BOOKINGS (AREA CHART) ================= */
+var bookingOptions = {
+    chart: {
+        type: 'area',
+        height: 350,
+        toolbar: { show: false }
+    },
+    series: [{
+        name: 'Bookings',
+        data: @json($booked['data'])
+    }],
+    xaxis: {
+        categories: @json($booked['labels'])
+    },
+    stroke: { curve: 'smooth' },
+    dataLabels: { enabled: false }
+};
+
+new ApexCharts(document.querySelector("#area_chart"), bookingOptions).render();
+
+
+/* ================= OCCUPANCY RATE (FIXED) ================= */
+var occupancyOptions = {
+    chart: {
+        type: 'pie',
+        height: 320
+    },
+    labels: @json($occupancyByShelter->pluck('shelter_name')),
+    series: @json($occupancyByShelter->pluck('occupancy_percent')),
+    legend: {
+        position: 'bottom'
+    }
+};
+
+new ApexCharts(document.querySelector("#occupancy_chart"), occupancyOptions).render();
+
 </script>
+
 @endsection

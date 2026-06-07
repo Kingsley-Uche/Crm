@@ -17,6 +17,7 @@ public function up(): void
         $table->unsignedBigInteger('block_shelter_id'); // Foreign key to the block_shelters table
         $table->unsignedBigInteger('amenity_id'); // Foreign key to the amenities table
         $table->integer('amenity_number'); // The quantity of the amenity
+        $table->unsignedBigInteger('shelter_id'); // Foreign key to the shelters table
         $table->unsignedBigInteger('id_apartment_id');
         $table->unsignedBigInteger('branch_id')->nullable();
         $table->unsignedBigInteger('location_models_id')->nullable();
@@ -27,6 +28,7 @@ public function up(): void
         $table->foreign('block_shelter_id')->references('id')->on('block_shelters')->onDelete('cascade');
         $table->foreign('amenity_id')->references('id')->on('amenities')->onDelete('cascade');
         $table->foreign('id_apartment_id')->references('id')->on('apartment_identities')->onDelete('cascade');
+        $table->foreign('shelter_id')->references('id')->on('shelters')->onDelete('cascade');
     });
 }
 

@@ -74,48 +74,84 @@ return view('layouts.accommodations.index', compact('accom'));
 
 }
 
-public function accomBlock(Request $request)
+public function ShelterInLocation($shelter_id, $location_id)
 {
     $user = Session::get('user');
     $permissions = Session::get('permissions');
+    $shelter_id = (int) $shelter_id;
+    $location_id = (int) $location_id;
     
     if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'read_property')))) {
         return redirect()->back()->with('error', 'Unauthorized access to apartments.');
     }
+$apartments = ApartmentIdentity::select(
+    'apartment_identities.*',
+
+    'estate_owners.id as estate_owner_id',
+    'estate_owners.fName as estate_owner_fName',
+    'estate_owners.lName as estate_owner_lName',
+    'estate_owners.email as estate_owner_email',
+    'estate_owners.phones as estate_owner_phones',
+
+    'booking_models.id as booking_id',
+    'booking_models.start_date as booking_start_date',
+    'booking_models.end_date as booking_end_date',
+    'booking_models.is_cancelled as booking_is_cancelled',
+
+    'tenants.full_name as tenant_full_name',
+    'tenants.id as tenant_id',
+    'tenants.gender as tenant_gender',
+    'tenants.mobile_number as tenant_mobile_number',
+    'tenants.occupant_email as tenant_email'
+)
+->where('apartment_identities.location_models_id', $location_id)
+->where('apartment_identities.shelter_id', $shelter_id)
+
+->leftJoin('estate_owners', 'estate_owners.id', '=', 'apartment_identities.landlord_id')
+
+->leftJoin('booking_models', function ($join) {
+    $join->on('booking_models.apartment_id', '=', 'apartment_identities.id')
+         ->where('booking_models.is_cancelled', false);
+})
+
+->leftJoin('tenants', 'tenants.id', '=', 'booking_models.tenant_id')
+
+->get();
+$location_data = LocationModel::where('id', $location_id)->select('id', 'name')->first();
+
+   $shelter_amenities = Shelter_Amenities::join(
+        'amenities',
+        'amenities.id',
+        '=',
+        'shelter_amenities.amenity_id'
+    )
+    ->where('shelter_amenities.location_models_id', $location_id)
+    ->where('shelter_amenities.shelter_id', $shelter_id)
+    ->select(
+        'shelter_amenities.id',
+        'shelter_amenities.location_models_id',
+        'shelter_amenities.amenity_number',
+        'shelter_amenities.amenity_id',
+        'shelter_amenities.id_apartment_id',
+        'amenities.name as amenity_name'
+    )
+    ->get();
+
     
-    // Validate incoming request data
-    $validated = $request->validate([
-        'block_id' => 'required|integer|exists:block_shelters,block_models_id',
-        'shelter_id' => 'required|integer|exists:block_shelters,shelter_id',
-    ]);
-
-    $blockShelter = Block_Shelter::with(['shelter', 'block'])
-        ->where([
-            'block_models_id' => $validated['block_id'],
-            'shelter_id' => $validated['shelter_id']
-        ])->firstOrFail();
-
+    
+    
+   
     // Fetch all amenities once
     $amenity_apartment = Shelter_Amenities::with(['amenitySizes', 'amenities'])
-        ->where('block_shelter_id', $blockShelter->id)
+        ->where('location_models_id', $location_id)
         ->where('amenity_number', '>', 0)
         ->get();
-
-    // Fetch apartments
-    $apartments = ApartmentIdentity::leftJoin('booking_models', 'booking_models.apartment_id', '=', 'apartment_identities.id')
-        ->where([
-            'apartment_identities.block_models_id' => $validated['block_id'],
-            'apartment_identities.block_shelter_id' => $blockShelter->id
-        ])
-        ->select(
-            'apartment_identities.*',
-            'booking_models.end_date as booked_expiry'
-        )
-        ->orderBy('apartment_identities.id', 'ASC')
-        ->paginate(12);
+   
 
     $apartments->each(function ($apartment) use ($amenity_apartment) {
         $apartment->amenities = $amenity_apartment->where('id_apartment_id', $apartment->id)->values();
+        $apartment->booking_status =
+        $apartment->booking_is_cancelled ? 'Occupied' : 'Vacant';
     });
     
     // Use caching for amenities and payment frequencies (assumed to change infrequently)
@@ -131,10 +167,9 @@ public function accomBlock(Request $request)
     $tenants = Cache::remember('tenants_list', now()->addHour(), function () {
         return Tenants::select('id', 'full_name')->get();
     });
-
     // Then pass to view
     return view('layouts.accommodations.view_block', [
-        'blockShelter' => $blockShelter,
+        'location' => $location_data,
         'apartments' => $apartments,
         'amenity_apartment' => $amenity_apartment,
         'pay_time' => $pay_freq,

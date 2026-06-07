@@ -19,6 +19,7 @@ return new class extends Migration
             $table->unsignedBigInteger('shelter_id')->nullable();
             $table->unsignedBigInteger('pay_frequency_id')->nullable();
             $table->unsignedBigInteger('landlord_id')->nullable();
+             $table->unsignedBigInteger('property_manager_id')->nullable();
             
             $table->string('tenancy_type')->nullable();
             
@@ -29,6 +30,7 @@ return new class extends Migration
             $table->string('unit_number')->nullable();
             $table->string('post_code')->nullable();
             $table->string('address')->nullable();
+
             
             // Unique code column
             $table->string('unique_code', 16)->unique();
@@ -42,6 +44,7 @@ return new class extends Migration
             // Indexes for foreign keys
             $table->index('branch_id');
             $table->index('location_models_id');
+            
             $table->index('shelter_id');
             $table->index('pay_frequency_id');
             $table->index('landlord_id');

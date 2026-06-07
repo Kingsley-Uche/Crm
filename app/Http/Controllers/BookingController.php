@@ -110,15 +110,15 @@ protected function createBooking($validated, $fee)
 public function getBooked(){
     $booked = BookingModel::where('is_cancelled', false)->join('tenants', 'tenants.id', '=', 'booking_models.tenant_id')
                     ->join('shelters', 'shelters.id', '=', 'booking_models.shelter_id')
-                    ->join('block_models', 'block_models.id', '=', 'booking_models.block_model_id')
-                    ->join('estate_owners', 'estate_owners.id', '=', 'block_models.landlord_id')
+                    ->join('apartment_identities', 'apartment_identities.id', '=', 'booking_models.apartment_id')
+                    ->join('estate_owners', 'estate_owners.id', '=', 'apartment_identities.landlord_id')
                     ->select('tenants.full_name', 'tenants.date_of_birth', 'tenants.gender', 'tenants.nationality', 'tenants.state',
                     'tenants.mobile_number', 'tenants.occupant_email as tenant_email', 'booking_models.id as booking_id', 'booking_models.start_date as booked_from',
                     'booking_models.end_date as booked_to', 'booking_models.apartment_id', 'booking_models.booked_by_user_id as booked_by', 
-                    'shelters.name as shelter_name', 'block_models.address as block_address', 'block_models.state_name as block_state', 
-                    'block_models.lgvt_name as block_lgvt', 'block_models.country_name as block_country', 
+                    'shelters.name as shelter_name', 'apartment_identities.address as apartment_address',
                     'estate_owners.fName as landlord_fname','estate_owners.lName as landlord_lname', 'estate_owners.phones as landlord_phones')->orderBy('tenants.id', 'DESC')
                    -> paginate(15);
+                   
             return view('layouts.accommodations.view_booked', [
         'booked' => $booked,
     ]);

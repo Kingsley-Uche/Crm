@@ -1,291 +1,534 @@
-@extends('layouts.dashboard.landpage')
 <style>
-.badge {
-    display: inline-block;
-    max-width: 100%; /* Make sure the badge doesn't overflow */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-transform: capitalize;
-    font-weight:300px;
+
+.apartment-card .card{
+    overflow:hidden;
 }
-#apartment_name {
-  text-transform: capitalize;
+
+.text-break{
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.accordion-body{
+    overflow-x:hidden;
+}
+
+.accordion-button{
+    font-size:.9rem;
+}
+
+.card-header{
+    word-break:break-word;
 }
 
 </style>
+@extends('layouts.dashboard.landpage')
+
 @section('content')
 
-    <div class="row">
-        <div class="col-12">
-            <div class="page-title-box d-sm-flex align-items-center justify-content-between mb-1 w-100">
-                <div class="page-title-right w-100">
-                    <div class="card border-0 shadow-sm p-3">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h4 class="card-title mb-2">
-                                    Estate Owner: 
-                                    <span class="text-success">{{ ucwords($blockShelter->estateOwner->fName) }} {{ ucwords($blockShelter->estateOwner->lName) }}</span>
-                                </h4>
-                                <p><strong>Contact:</strong> {{ $blockShelter->estateOwner->phones }} | {{ $blockShelter->estateOwner->email }}</p>
-                                <p><strong>Block Address:</strong> {{ ucwords($blockShelter->block->address) }}</p>
-                            </div>
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
 
-                            <!-- Breadcrumb for Building and Apartment Info -->
-                            <div class="col-md-6 text-md-end mt-4 mt-md-0">
-                                <ol class="breadcrumb mb-0">
-                                    <li class="breadcrumb-item">
-                                        <a href="{{ route('shelters.index') }}" class="text-decoration-none">
-                                            <i class="fas fa-house-user text-muted"></i> Building Title: {{ ucwords($blockShelter->block->name) }}
-                                        </a>
-                                    </li>
-                                    <li class="breadcrumb-item active">Apartment: {{ ucwords($blockShelter->shelter->name) }} h/li>
-                                </ol>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div> 
+        <div class="row align-items-center">
 
-    <!-- Booking Modal -->
-    <div class="modal fade" id="bookingModal" tabindex="-1" role="dialog" aria-labelledby="bookingModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content p-3">
-                <div class="modal-header bg-success">
-                    <h5 class="modal-title text-white p-2 rounded text-center">
-                        Book Apartment: <span id='apartment_name'></span>
-                    </h5>
-                    <span class="badge rounded bg-warning float-end">$ <span id='fee'>{{ number_format(0, 2) }}</span></span>
-                    <button type="button" class="btn-close  btn btn-danger" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <!-- Form starts here -->
-                <form id="bookingForm" method="POST" action="{{ route('accommodation.book') }}">
-                    @csrf
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="start-date-input" class="form-label">Start Date</label>
-                            <input class="form-control" type="date" id="start-date-input" name="start_date" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="end-date-input" class="form-label">End Date</label>
-                            <input class="form-control" type="date" id="end-date-input" name="end_date" required>
-                        </div>
-                        <input type="hidden" id="apartment_id" name="apartment_id">
-                        <input type="hidden" id="pay_time_id" name="payment_time_id">
-                        <input type="hidden" id="shelter_id" name="shelter_id">
-                        <input type="hidden" id="block_id" name="block_id">
-                        <input type="hidden" id="block_shelter" name="block_shelter_id">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="tenants">Select Tenant</label>
-                        <select name="tenant_id" class="form-control" id="tenants" required>
-                            <option value="">Select a Tenant</option>
-                            @foreach($tenants as $tenant)
-                                <option value="{{ $tenant->id }}">{{ $tenant->full_name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-success" id="manage">Confirm Booking</button>
-                    </div>
-                </form>
-                <!-- Form ends here -->
+            <div class="col-md-6">
+                <h4 class="mb-1">
+                    {{ ucwords($location->name) }}
+                </h4>
+
+                <small class="text-muted">
+                    Total Apartments: {{ $apartments->count() }}
+                </small>
             </div>
+
+            <div class="col-md-6">
+                <input
+                    type="text"
+                    id="apartmentSearch"
+                    class="form-control"
+                    placeholder="Search by address, tenant name or landlord name..."
+                >
+            </div>
+
         </div>
+
     </div>
+</div>
 
-    <!-- Apartments List -->
-    <div class="row">
-        @foreach($apartments as $index => $apartment)
-            <div class="col-md-4">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h6 class="card-title text-center">
-                            <i class="fas fa-house-user text-warning"></i> 
-                            {{ucwords($apartment->name ?? $blockShelter->shelter->name).' '.$apartment->unit_number }}
-                            <br><span class='badge bg-warning'>{{$apartment->address}}</span><br>
-                        </h6>
-                        <small class='text-info'>Property Ref: {{$apartment->property_ref}}</small>
-                        <small class='text-info mx-1'> Ownership: {{$apartment->ownership}}</small>
-                        <ul class="list-group list-group-flush">
-                            @if($apartment->pay_frequency_id && $apartment->fee)
-                                <li class="list-group-item">
-                                    <i class="ri-money-dollar-circle-line text-success"></i> <strong>Payment:</strong><br>
-                                    {{ ucfirst(optional($pay_time->firstWhere('id', $apartment->pay_frequency_id))->payment_frequency) }} - ${{ number_format($apartment->fee, 2) }}
-                                    @if($apartment->booked_expiry)
-                                        <span class="badge bg-danger">
-                                            @if(\Carbon\Carbon::parse($apartment->booked_expiry) >= \Carbon\Carbon::today())
-                                                <i class="fas fa-calendar-alt"></i> Booked till: 
-                                                {{ \Carbon\Carbon::parse($apartment->booked_expiry)->addDay()->format('Y-m-d') }}
-                                            @endif
-                                        </span>
-                                    @endif
-                                </li>
-                            @endif
-                            <!-- Display Amenities with Sizes -->
-                            @foreach($apartment->amenities as $amenity)
-                                <li class="list-group-item">
-                                    <i class="ri-checkbox-circle-line text-success"></i>
-                                    {{ $amenity->amenities->name }}:  
-                                    <span class="badge rounded-pill bg-success float-end">
-                                        {{ $amenity->amenity_number }}
-                                        @if($amenity->amenitySizes && $amenity->amenitySizes->isNotEmpty())
-                                            ({{ $amenity->amenitySizes->pluck('amenity_size')->implode(', ') }})
-                                        @endif
-                                    </span>
-                                </li>
-                            @endforeach
-                        </ul>
-                        
-                        <!-- Hidden inputs for apartment data -->
-                        <input type="hidden" class="apartment_id" value="{{ $apartment->id }}">
-                        <input type="hidden" class="pay_time_id" value="{{ $apartment->pay_frequency_id }}">
-                        <input type="hidden" class="shelter_id" value="{{ $apartment->shelter_id }}">
-                        <input type="hidden" class="block_id" value="{{ $apartment->block_models_id }}">
-                        <input type="hidden" class="fee_amt" value="{{ $apartment->fee }}">
-                        <input type="hidden" class="block_shelter" value="{{ $blockShelter->id }}">
-                          <input type="hidden" class="apartment_address" value="{{$apartment->address}}">
-                      
-                        <!-- Book Now Button -->
-                        <button class="btn btn-success mt-3 w-100 py-2 rounded book-now-btn" aria-label="Book Now">
-                            <strong>Book Now</strong>
+<div class="row" id="apartmentsContainer">
+
+@forelse($apartments as $apartment)
+
+<div
+    class="col-xl-4 col-lg-4 col-md-6 mb-4 apartment-card"
+    data-address="{{ strtolower($apartment->address ?? '') }}"
+    data-tenant="{{ strtolower($apartment->tenant_full_name ?? '') }}"
+    data-landlord="{{ strtolower(trim(($apartment->estate_owner_fName ?? '').' '.($apartment->estate_owner_lName ?? ''))) }}"
+>
+
+    <div class="card shadow-sm border-0 h-100">
+
+        <div class="card-body">
+
+            <div class="border-bottom pb-2 mb-3">
+
+                <h6 class="fw-bold mb-1 text-primary">
+                    {{ $apartment->address }}
+                </h6>
+
+                <span class="badge bg-dark">
+                    Unit {{ $apartment->unit_number }}
+                </span>
+
+            </div>
+
+            <div class="mb-2">
+
+                @if($apartment->tenant_id)
+                    <span class="badge bg-danger">
+                        Occupied
+                    </span>
+                @else
+                    <span class="badge bg-success">
+                        Vacant
+                    </span>
+                @endif
+
+                @if($apartment->estate_owner_id)
+                    <span class="badge bg-primary">
+                        Landlord Assigned
+                    </span>
+                @else
+                    <span class="badge bg-secondary">
+                        No Landlord
+                    </span>
+                @endif
+
+            </div>
+
+            <div class="mb-3">
+
+                <strong class="d-block mb-2">
+                    Amenities
+                </strong>
+
+                @forelse($apartment->amenities as $amenity)
+
+                    <span class="badge bg-info text-white mb-1">
+
+                        {{ ucfirst($amenity->amenities->name) }}
+
+                        @if($amenity->amenity_number > 0)
+                            ({{ $amenity->amenity_number }})
+                        @endif
+
+                    </span>
+
+                @empty
+
+                    <span class="badge bg-warning text-white mb-1">
+                        No Amenities
+                    </span>
+
+                @endforelse
+
+            </div>
+
+            <div class="accordion" id="accordion{{ $apartment->id }}">
+
+                <div class="accordion-item">
+
+                    <h2 class="accordion-header">
+
+                        <button
+                            class="accordion-button collapsed"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#details{{ $apartment->id }}"
+                        >
+                            View Details
                         </button>
-                    </div>
-                </div>
-            </div>
-        @endforeach
-    </div>
 
-    <!-- Pagination -->
-    <div class="row">
-        <div class="col-12 float-right">
-         {{ $apartments->appends(request()->query())->links('pagination::bootstrap-4') }}
+                    </h2>
+
+                    <div
+                        id="details{{ $apartment->id }}"
+                        class="accordion-collapse collapse"
+                    >
+
+                       <div class="accordion-body">
+
+    {{-- Apartment Details --}}
+    <div class="card border-primary mb-3">
+        <div class="card-header bg-primary text-white">
+            Apartment Details
+        </div>
+
+        <div class="card-body">
+
+            <div class="row g-2">
+
+                <div class="col-5 fw-bold">
+                    Property Ref
+                </div>
+
+                <div class="col-7 text-break">
+                    {{ $apartment->property_ref }}
+                </div>
+
+                <div class="col-5 fw-bold">
+                    Ownership
+                </div>
+
+                <div class="col-7 text-break">
+                    {{ $apartment->ownership }}
+                </div>
+
+                <div class="col-5 fw-bold">
+                    Fee
+                </div>
+
+                <div class="col-7 text-break">
+                    ₦{{ number_format($apartment->fee,2) }}
+                </div>
+
+                <div class="col-5 fw-bold">
+                    Payment
+                </div>
+
+                <div class="col-7 text-break">
+                    {{ optional($pay_time->firstWhere('id',$apartment->pay_frequency_id))->payment_frequency }}
+                </div>
+
+            </div>
 
         </div>
     </div>
+
+    {{-- Landlord --}}
+    <div class="card border-success mb-3">
+
+        <div class="card-header bg-success text-white">
+            Landlord Details
+        </div>
+
+        <div class="card-body">
+
+            @if($apartment->estate_owner_id)
+
+                <div class="row g-2">
+
+                    <div class="col-4 fw-bold">
+                        Name
+                    </div>
+
+                    <div class="col-8 text-break">
+                        {{ $apartment->estate_owner_fName }}
+                        {{ $apartment->estate_owner_lName }}
+                    </div>
+
+                    <div class="col-4 fw-bold">
+                        Email
+                    </div>
+
+                    <div class="col-8 text-break">
+                        {{ $apartment->estate_owner_email }}
+                    </div>
+
+                    <div class="col-4 fw-bold">
+                        Phone
+                    </div>
+
+                    <div class="col-8 text-break">
+                        {{ $apartment->estate_owner_phones }}
+                    </div>
+
+                </div>
+
+            @else
+
+                <div class="alert alert-warning mb-0">
+                    No landlord assigned.
+                </div>
+
+            @endif
+
+        </div>
+
+    </div>
+
+    {{-- Tenant --}}
+    <div class="card border-warning mb-3">
+
+        <div class="card-header bg-warning text-white">
+            Tenant Details
+        </div>
+
+        <div class="card-body">
+
+            @if($apartment->tenant_id)
+
+                <div class="row g-2">
+
+                    <div class="col-4 fw-bold">
+                        Name
+                    </div>
+
+                    <div class="col-8 text-break">
+                        {{ $apartment->tenant_full_name }}
+                    </div>
+
+                    <div class="col-4 fw-bold">
+                        Gender
+                    </div>
+
+                    <div class="col-8 text-break">
+                        {{ $apartment->tenant_gender }}
+                    </div>
+
+                    <div class="col-4 fw-bold">
+                        Phone
+                    </div>
+
+                    <div class="col-8 text-break">
+                        {{ $apartment->tenant_mobile_number }}
+                    </div>
+
+                    <div class="col-4 fw-bold">
+                        Email
+                    </div>
+
+                    <div class="col-8 text-break">
+                        {{ $apartment->tenant_email }}
+                    </div>
+
+                    <div class="col-4 fw-bold">
+                        Start
+                    </div>
+
+                    <div class="col-8 text-break">
+                        {{ $apartment->booking_start_date }}
+                    </div>
+
+                    <div class="col-4 fw-bold">
+                        End
+                    </div>
+
+                    <div class="col-8 text-break">
+                        {{ $apartment->booking_end_date }}
+                    </div>
+
+                </div>
+
+            @else
+
+                <div class="alert alert-info mb-0">
+                    Apartment currently vacant.
+                </div>
+
+            @endif
+
+        </div>
+
+    </div>
+
+    {{-- Amenities --}}
+    <div class="card border-info">
+
+        <div class="card-header bg-info text-white">
+            Amenities Breakdown
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                @forelse($apartment->amenities as $amenity)
+
+                    <div class="col-12 mb-2">
+
+                        <div class="d-flex justify-content-between border rounded p-2">
+
+                            <span class="text-break">
+                                {{ $amenity->amenities->name }}
+                            </span>
+
+                            <span class="badge bg-success">
+                                {{ $amenity->amenity_number }}
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                @empty
+
+                    <div class="col-12">
+
+                        <div class="alert alert-secondary mb-0">
+                            No amenities configured.
+                        </div>
+
+                    </div>
+
+                @endforelse
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@empty
+
+<div class="col-12">
+    <div class="alert alert-warning">
+        No apartments found.
+    </div>
+</div>
+
+@endforelse
+
+</div>
+
+<div class="d-flex justify-content-center mt-4">
+    <nav>
+        <ul class="pagination" id="pagination"></ul>
+    </nav>
+</div>
+
 @endsection
 
 @section('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const spinner = document.createElement('div');
-    spinner.classList.add('spinner-border', 'text-success');
-    spinner.setAttribute('role', 'status');
-    const spinnerText = document.createElement('span');
-    spinnerText.classList.add('visually-hidden');
-    spinnerText.innerText = 'Loading...';
-    spinner.appendChild(spinnerText);
-    const today = new Date().toISOString().split('T')[0];
-    const startDateInput = document.getElementById('start-date-input');
-    const endDateInput = document.getElementById('end-date-input');
 
-    // Set start date minimum to today and end date minimum to tomorrow
-    startDateInput.setAttribute('min', today);
-    
-    function getNextDay(date) {
-        const nextDay = new Date(date);
-        nextDay.setDate(nextDay.getDate() + 1);
-        return nextDay.toISOString().split('T')[0];
+<script>
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    const cardsPerPage = 12;
+
+    let currentPage = 1;
+
+    const cards = Array.from(
+        document.querySelectorAll('.apartment-card')
+    );
+
+    const pagination = document.getElementById('pagination');
+
+    const searchInput = document.getElementById('apartmentSearch');
+
+    function displayCards(page)
+    {
+        const visibleCards = cards.filter(
+            card => card.style.display !== 'none-filtered'
+        );
+
+        cards.forEach(card => {
+            if(card.style.display !== 'none-filtered'){
+                card.style.display = 'none';
+            }
+        });
+
+        const start = (page - 1) * cardsPerPage;
+        const end = start + cardsPerPage;
+
+        visibleCards.slice(start, end).forEach(card => {
+            card.style.display = '';
+        });
+
+        createPagination(visibleCards.length);
     }
 
-    // Set the initial end date minimum to the next day after today
-    endDateInput.setAttribute('min', getNextDay(today));
+    function createPagination(totalItems)
+    {
+        pagination.innerHTML = '';
 
-    startDateInput.addEventListener('change', function() {
-        const selectedStartDate = this.value;
-        const nextDay = getNextDay(selectedStartDate);
+        const totalPages =
+            Math.ceil(totalItems / cardsPerPage);
 
-        // Ensure the end date can't be before the minimum allowed end date
-        endDateInput.setAttribute('min', nextDay);
-    });
+        if(totalPages <= 1){
+            return;
+        }
 
-    // Handle "Book Now" button click
-    document.querySelectorAll('.book-now-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const card = this.closest('.card-body');
-            const apartmentId = card.querySelector('.apartment_id').value;
-            const payTimeId = card.querySelector('.pay_time_id').value;
-            const shelterId = card.querySelector('.shelter_id').value;
-            const blockId = card.querySelector('.block_id').value;
-            const blockShelter = card.querySelector('.block_shelter').value;
-            const feeAmt = card.querySelector('.fee_amt').value;
-            const apartment_address = card.querySelector('.apartment_address').value;
-          
-            document.getElementById('bookingModal').querySelector('.modal-content').classList.add('loading-spinner');
-            document.getElementById('apartment_id').value = apartmentId;
-            document.getElementById('pay_time_id').value = payTimeId;
-            document.getElementById('shelter_id').value = shelterId;
-            document.getElementById('block_id').value = blockId;
-            document.getElementById('block_shelter').value = blockShelter;
-            document.getElementById('fee').innerText = parseFloat(feeAmt).toFixed(2);
-            document.getElementById('apartment_name').innerText = apartment_address;
-            const bookingModalBody = document.querySelector('.modal-body');
-            bookingModalBody.prepend(spinner);
+        for(let i = 1; i <= totalPages; i++)
+        {
+            const li = document.createElement('li');
 
-            // Show booking modal
-            const bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
-            bookingModal.show();
+            li.className =
+                'page-item ' +
+                (i === currentPage ? 'active' : '');
 
-            // Simulate data fetching delay and remove spinner
-            setTimeout(() => {
-                spinner.remove();
-            }, 2000);
-        });
-    });
+            li.innerHTML =
+                `<a class="page-link" href="#">${i}</a>`;
 
-    // Handle form submission via Fetch API
-    const bookingForm = document.getElementById('bookingForm');
-    bookingForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-        const submitButton = document.getElementById('manage');
-        const formData = new FormData(bookingForm);
-  
-        submitButton.setAttribute('disabled', 'true');
+            li.addEventListener('click', function(e){
 
-        fetch(bookingForm.action, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            spinner.remove();
-            submitButton.removeAttribute('disabled');
+                e.preventDefault();
 
-            if (data.success) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Booking Confirmed!',
-                    text: data.message,
-                    showConfirmButton: false,
-                    timer: 1500
-                });
-            } else {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Booking Failed!',
-                    text: data.message || 'An error occurred, please try again.',
-                });
-            }
+                currentPage = i;
 
-            const bookingModal = bootstrap.Modal.getInstance(document.getElementById('bookingModal'));
-            bookingModal.hide();
-        })
-        .catch(error => {
-            console.error(error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error!',
-                text: 'An error occurred while booking. Please try again later.',
+                displayCards(currentPage);
+
             });
-            submitButton.removeAttribute('disabled');
+
+            pagination.appendChild(li);
+        }
+    }
+
+    searchInput.addEventListener('keyup', function(){
+
+        const search =
+            this.value.toLowerCase();
+
+        cards.forEach(function(card){
+
+            const address =
+                card.dataset.address || '';
+
+            const tenant =
+                card.dataset.tenant || '';
+
+            const landlord =
+                card.dataset.landlord || '';
+
+            if(
+                address.includes(search) ||
+                tenant.includes(search) ||
+                landlord.includes(search)
+            ){
+                card.style.display = '';
+                card.style.removeProperty('none-filtered');
+            }
+            else{
+                card.style.display = 'none-filtered';
+            }
+
         });
+
+        currentPage = 1;
+
+        displayCards(currentPage);
+
     });
+
+    displayCards(1);
+
 });
+
 </script>
+
 @endsection

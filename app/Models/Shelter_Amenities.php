@@ -15,7 +15,8 @@ class Shelter_Amenities extends Model
         'amenity_number',
         'id_apartment_id',
         'branch_id',
-        'location_models_id'
+        'location_models_id',
+        'shelter_id'
     ];
 
     // Relationship with Block_Shelter model (if necessary)

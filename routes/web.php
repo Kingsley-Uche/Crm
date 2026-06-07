@@ -30,6 +30,7 @@ use App\Http\Controllers\SubscriptionPlanController;
 use App\Http\Controllers\SubscriptionAccountController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\BranchController;
+use App\Http\Controllers\ManagerController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -75,6 +76,18 @@ Route::middleware('subscription')->group(function () {
             Route::get('/{id}/edit', [EstateOwnerController::class, 'edit'])->name('estate_owners.edit');
             Route::put('/{id}', [EstateOwnerController::class, 'update'])->name('estate_owners.update');
             Route::delete('/{id}', [EstateOwnerController::class, 'destroy'])->name('estate_owners.destroy');
+        });
+        Route::prefix('managers')->group(function () {
+            Route::get('/', [ManagerController::class, 'index'])->name('managers.index');
+            Route::get('/create', [ManagerController::class, 'create'])->name('managers.create');
+            Route::post('/create', [ManagerController::class, 'store'])->name('managers.store');
+            Route::get('/{id}', [ManagerController::class, 'show'])->name('managers.show');
+            Route::get('/{id}/edit', [ManagerController::class, 'edit'])->name('managers.edit');
+            Route::put('/{id}', [ManagerController::class, 'update'])->name('managers.update');
+            Route::get('/{manager_id}/assign-apartments', [ManagerController::class, 'viewAssignedApartments'])->name('managers.view-assigned-apartments');
+            Route::post('/show/assign/page', [ManagerController::class, 'loadAssignApartmentPage'])->name('managers.load-assign-apartments');
+            Route::post('/assign-apartments', [ManagerController::class, 'assignApartments'])->name('managers.assign-apartments');
+            Route::delete('/{manager_id}', [ManagerController::class, 'destroy'])->name('managers.destroy');
         });
 
         Route::prefix('branches')->group(function () {
@@ -130,7 +143,11 @@ Route::middleware('subscription')->group(function () {
         // Accommodation routes
         Route::prefix('accommodation')->group(function () {
             Route::get('/', [AccommodationController::class, 'index'])->name('accommodation.index');
-            Route::get('/block', [AccommodationController::class, 'accomBlock'])->name('accommodation.block');
+            Route::get('/shelter/location/{shelter_id}/{location_id}', [AccommodationController::class, 'ShelterInLocation'])->name('accommodation.location');
+             Route::get('/blocks/{shelter_id}', [AccommodationController::class, 'accomBlock'])->name('accommodation.blocks');
+             Route::get('/apartments/{block_id}', [AccommodationController::class, 'accomApartment'])->name('accommodation.apartments');
+             Route::post('/amenities/create', [ApartmentController::class, 'CreateAmenity'])->name('amenity.create');
+             Route::post('/amenities/update', [ApartmentController::class, 'UpdateAmenity'])->name('amenity.update');
             Route::post('/amenities/update', [ApartmentController::class, 'UpdateAmenitySize'])->name('amenity.size.update');
         });
 

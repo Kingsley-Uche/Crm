@@ -54,9 +54,7 @@
     <thead class="table-light">
         <tr>
             <th>S/N</th>
-            <th>First Name</th>
-            <th>Middle Name</th>
-            <th>Last Name</th>
+            <th>Full Name</th>
             <th>Date of Birth</th>
             <th>Gender</th>
             <th>Nationality</th>

@@ -101,10 +101,10 @@ public function storeApartment(Request $request)
                 [
                     'branch_id' => $validated['branch_id'],
                     'location_models_id' => $validated['location_id'],
-                    'id_apartment_id' => $apartment_identity->id,
-                    'amenity_id' => $amenity->id,
+                    'shelter_id' => $validated['shelter_id'],
                 ],
-                [
+                [ 'id_apartment_id' => $apartment_identity->id,
+                    'amenity_id' => $amenity->id,
                     'amenity_number' => 0,
                 ]
             );
@@ -413,11 +413,14 @@ public function ApartmentUpdate(Request $request, $id)
             Shelter_Amenities::updateOrCreate(
                 [
                     'id_apartment_id' => $apartment->id,
-                    'amenity_id'   => $amenity_id,
-                    'location_models_id' => $validated['location_id'],
+                      'amenity_id'   => $amenity_id,
+                    
                 ],
                 [
                     'amenity_number' => (int) $qty,
+                  
+                    'location_models_id' => $validated['location_id'],
+                    'shelter_id' => $validated['shelter_id'],
                 ]
             );
         }

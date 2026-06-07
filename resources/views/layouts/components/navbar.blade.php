@@ -6,7 +6,7 @@ $brand_color = $brand['brand_color'] ?? '#074784';
     <div data-simplebar class="h-100">
         <div id="sidebar-menu">
             <ul class="metismenu list-unstyled" id="side-menu">
-                <li class="menu-title">Home</li>
+                <li class="menu-title">{{ $brand['brand_name'] ?? '' }}</li>
 
                 <li>
                     <a href="{{ route('admin.dashboard') }}" class="waves-effect"
@@ -35,6 +35,28 @@ $user = (Session::get('user'));
                                         <a href="{{ route('estate_owners.index') }}"
                                            style="{{ request()->routeIs('estate_owners.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
                                             <i class="far fa-eye"></i> Estate Owners
+                                        </a>
+                                    </li>
+                                @endif
+                            </ul>
+                        </li>
+                    @endif
+                @endif
+                 @if(Session::has('permissions'))
+                    @if(Session::get('permissions')->contains('slug', 'create_managers') || Session::get('permissions')->contains('slug', 'read_managers')||$user->is_system_admin===1)
+                        <li>
+                            <a href="javascript:void(0);" class="waves-effect has-arrow"
+                               style="{{ request()->routeIs('managers.*') ? 'color: ' . $brand_color . ' !important;' : '' }}">
+                                <i class="fas fa-users"></i>
+                                <span>Managers</span>
+                            </a>
+                            <ul class="sub-menu" aria-expanded="false">
+                               
+                                @if(Session::get('permissions')->contains('slug', 'read_managers')||$user->is_system_admin===1)
+                                    <li>
+                                        <a href="{{ route('managers.index') }}"
+                                           style="{{ request()->routeIs('managers.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
+                                            <i class="far fa-eye"></i> Managers
                                         </a>
                                     </li>
                                 @endif
@@ -78,7 +100,7 @@ $user = (Session::get('user'));
                             <a href="javascript:void(0);" class="has-arrow waves-effect"
                                style="{{ request()->routeIs('property.*') ? 'color: ' . $brand_color . ' !important;' : '' }}">
                                 <i class="fas fa-building"></i>
-                                <span>Property Manager</span>
+                                <span>Apartment Manager</span>
                             </a>
                             <ul class="sub-menu" aria-expanded="true">
 

@@ -6,7 +6,7 @@ class ApartmentIdentity extends Model
 {
     protected $fillable = [
         'branch_id', 'location_models_id', 'shelter_id',  'unique_code', 'pay_frequency_id','landlord_id',
-        'fee', 'pro_sco_code', 'property_ref','ownership', 'unit_number', 'post_code', 'admin_unit','tenancy_type','address'
+        'fee', 'pro_sco_code', 'property_ref','ownership', 'unit_number', 'post_code', 'admin_unit','tenancy_type','address','property_mansger_id'
     ];
 
  

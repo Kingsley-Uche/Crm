@@ -26,16 +26,11 @@
                             <th>Shelter Address</th>
                             <th>Tenant Name</th>
                             <th>Tenant Gender</th>
-                            <th>Tenant Nationality</th>
-                            <th>State</th>
                             <th>Phone Numbers</th>
                             <th>Tenant D.O.B</th>
                             <th>Email</th>
                             <th>Booked From</th>
                             <th>Booked Till</th>
-                            <th>Block State</th>
-                            <th>Block LGA</th>
-                            <th>Block Country</th>
                             <th>Landlord Full Name</th>
                             <th>Landlord Phones</th>
                             <th>Cancel:</th>
@@ -49,23 +44,25 @@
                                 <td>{{ ucfirst($booking->block_address) }}</td>
                               <td>{{ ucfirst($booking->full_name) }} {{ ucfirst(substr($booking->middle_name, 0, 1)) }}. {{ ucfirst($booking->last_name) }}</td>
                                 <td>{{ ucfirst($booking->gender) }}</td>
-                                <td>{{ $booking->nationality }}</td>
-                                <td>{{ $booking->state }}</td>
                                 <td>{{ $booking->mobile_number }}</td>
                                 <td>{{\Carbon\Carbon::parse($booking->date_of_birth)->format('M d, Y') }}</td>
                                 <td>{{ $booking->tenant_email }}</td>
                                 <td><span class="badge bg-info">{{ \Carbon\Carbon::parse($booking->booked_from)->format('M d, Y') }}</span></td>
                                <td><span class="badge bg-warning">{{ \Carbon\Carbon::parse($booking->booked_to)->format('M d, Y') }}</span></td>
-                                 <td>{{ $booking->block_state }}</td>
-                                <td>{{ $booking->block_lgvt }}</td>
-                                <td>{{ $booking->block_country }}</td>
                                 <td>{{ $booking->landlord_fname }} {{ $booking->landlord_lname }}</td>
                                 <td>{{ $booking->landlord_phones }}</td>
                                 <td>
-                                    <form action="{{ route('booked.cancel', $booking->booking_id) }}" method="POST" class="d-inline">
-                                    @csrf @method('DELETE')
-                                    <a href="{{ route('booked.cancel', $booking->booking_id) }}" class="btn btn-sm delete-btn" data-fname="{{$booking->full_name }}" data-lname="{{$booking->last_name}}" aria-label="Cancel booking">
-                                     <i class="fas fa-times-circle text-danger" data-toggle="tooltip" title="Cancel booking"></i> 
+                                    <form action="{{ route('booked.cancel', $booking->booking_id) }}"
+      method="POST">
+    @csrf
+    @method('DELETE')
+
+    <button type="submit" class="btn btn-sm btn-danger delete-btn">
+        <i class="fas fa-times-circle text-white"></i>
+    </button>
+</form>
+                                </td>
+   
                             </tr>
                         @endforeach
                     </tbody>

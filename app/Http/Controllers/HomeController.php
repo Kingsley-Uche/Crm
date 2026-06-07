@@ -35,84 +35,94 @@ public function AdminIndex()
 {
     $user = Auth::user();
     Session::put('user', $user);
-   $repairs = Repairs::select('id', 'progress', 'completion_date', 'progress')->get();
-   
-   $uncompletedRepairs = $repairs->filter(function ($repair) {
-    return is_null($repair->completion_date);
-})->groupBy('progress')->map->count();
 
-$total_uncompleted = $repairs->filter(function ($repair) {
-    $progress = trim(strtolower($repair->progress ?? ''));
-    return $progress !== 'completed';
-})->count();
+    // ---------------- Repairs ----------------
+    $repairs = Repairs::select('id', 'progress', 'completion_date')->get();
 
+    $repairProgressCounts = $repairs
+        ->groupBy(function ($repair) {
+            return $repair->progress ?: 'Unknown';
+        })
+        ->map->count();
 
+    $total_uncompleted = $repairs->filter(function ($repair) {
+        return trim(strtolower($repair->progress ?? '')) !== 'completed';
+    })->count();
 
-$overdueCount = $repairs->filter(function ($repair) {
-    return !empty($repair->completion_date) &&
-           Carbon::parse($repair->completion_date)->lessThan(now());
-})->count();
+    $overdueCount = $repairs->filter(function ($repair) {
+        return !empty($repair->completion_date) &&
+            Carbon::parse($repair->completion_date)->lt(now());
+    })->count();
 
-$uncompletedRepairs['Overdue']=+$overdueCount;
-$total_incomplete = 
+    $repairProgressCounts['Overdue'] = $overdueCount;
 
-$repairProgressCounts =$uncompletedRepairs ;
-
-
-    // Get all blocks with relationships
-    $blocks = BlockModel::with([
-        'shelt' => function ($query) {
-            $query->select('id', 'name');
-        },
-        'location' => function ($query) {
-            $query->select('id', 'name');
-        },
-        'apartments' => function ($query) {
-            $query->select('id', 'block_models_id', 'block_shelter_id', 'shelter_id');
-        }
-    ])->get();
-
-    // Count total blocks
-    $totalBlocks = $blocks->count();
-
-    $allShelters = \App\Models\Shelter::select('id', 'name')->get()->keyBy('id');
-    $voids = VoidsModel::select('id', 'property_type')->get();
-    $voids = $voids->groupBy('property_type')->map->count();
+    // ---------------- Basic Counts ----------------
+    $locations = DB::table('location_models')->count();
     $tenants = Tenant::count();
 
-    // **Call the function to get booking data**
+    // ---------------- Shelter Apartment Types ----------------
+    $shelterTypeCounts = DB::table('apartment_identities as a')
+        ->join('shelters as s', 's.id', '=', 'a.shelter_id')
+        ->select('s.name as shelter_name', DB::raw('COUNT(a.id) as total'))
+        ->groupBy('s.name')
+        ->get();
+$occupancyByShelter = DB::table('shelters as s')
+    ->leftJoin('apartment_identities as a', 's.id', '=', 'a.shelter_id')
+    ->leftJoin('booking_models as b', function ($join) {
+        $join->on('a.id', '=', 'b.apartment_id')
+             ->where('b.is_cancelled', false);
+    })
+    ->select(
+        's.id',
+        's.name as shelter_name',
+        DB::raw('COUNT(DISTINCT a.id) as total_units'),
+        DB::raw('COUNT(DISTINCT b.apartment_id) as occupied_units')
+    )
+    ->groupBy('s.id', 's.name')
+    ->get();
+   $occupancyByShelter = $occupancyByShelter->map(function ($item) {
+
+    $vacant = max($item->total_units - $item->occupied_units, 0);
+
+    $occupancy_percent = $item->total_units > 0
+        ? round(($item->occupied_units / $item->total_units) * 100, 2)
+        : 0;
+
+    return [
+        'shelter_name' => $item->shelter_name,
+        'total_units' => $item->total_units,
+        'occupied_units' => $item->occupied_units,
+        'vacant_units' => $vacant,
+        'occupancy_percent' => $occupancy_percent
+    ];
+});
+
+    
+
+    // ---------------- Voids ----------------
+    $voids = VoidsModel::select('property_type')
+        ->get()
+        ->groupBy('property_type')
+        ->map->count();
+
+    // ---------------- Bookings ----------------
     $booked = $this->getBookingData();
 
-    // Count apartment shelter types grouped by shelter name
-    $shelterTypeCounts = [];
 
-    foreach ($blocks as $block) {
-        foreach ($block->apartments as $apartment) {
-            $shelterId = $apartment->shelter_id;
+    
 
-            if (isset($allShelters[$shelterId])) {
-                $shelterName = $allShelters[$shelterId]->name;
-
-                if (!isset($shelterTypeCounts[$shelterName])) {
-                    $shelterTypeCounts[$shelterName] = 0;
-                }
-
-                $shelterTypeCounts[$shelterName]++;
-            }
-        }
-    }
 
     return view('layouts.dashboard.home.index', compact(
-        'user',
-        'blocks',
-        'totalBlocks',
-        'shelterTypeCounts',
-        'repairProgressCounts',
-        'total_uncompleted',
-        'voids',
-        'tenants',
-        'booked',
-    ));
+    'user',
+    'locations',
+    'repairProgressCounts',
+    'total_uncompleted',
+    'shelterTypeCounts',
+    'voids',
+    'tenants',
+    'booked',
+    'occupancyByShelter'
+));
 }
 
 private function getBookingData()
