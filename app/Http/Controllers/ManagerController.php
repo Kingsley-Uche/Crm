@@ -8,11 +8,13 @@ use App\Models\ApartmentIdentity;
 use App\Models\BranchModel;
 use App\Models\LocationModel;
 use App\Models\Shelter;
+use App\Models\AdminModel as User;
 use  App\Models\Shelter_Amenities;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Mail;
 
 class ManagerController extends Controller
 {
@@ -37,21 +39,59 @@ class ManagerController extends Controller
     /**
      * Save manager
      */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name'  => 'required|string|max:255',
-            'email' => 'required|email|unique:managers,email',
-            'phone' => 'nullable|string|max:20',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
-$validated['password'] = Hash::make($validated['password']);
-        Manager::create($validated);
+   public function store(Request $request)
+{
+    $validated = $request->validate([
+        'lName'    => 'required|string|max:255',
+        'fName'    => 'required|string|max:255',
+        'email'    => 'required|email|unique:managers,email|unique:users,email',
+        'phone'    => 'nullable|string|max:20',
+        'password' => 'required|string|min:8|confirmed',
+    ]);
 
-        return redirect()
-            ->route('managers.index')
-            ->with('success', 'Manager created successfully.');
-    }
+   DB::beginTransaction();
+
+try {
+
+    $plainPassword = $validated['password'];
+    $hashedPassword = Hash::make($plainPassword);
+
+    $user = User::create([
+        'fname'      => $validated['fName'],
+        'lname'      => $validated['lName'],
+        'email'      => $validated['email'],
+        'user_type'  => 2,
+        'created_by' => Auth::id(),
+        'password'   => $hashedPassword,
+    ]);
+
+    $manager = Manager::create([
+        'name'     => $validated['fName'].' '.$validated['lName'],
+        'email'    => $validated['email'],
+        'phone'    => $validated['phone'],
+        'password' => $hashedPassword,
+    ]);
+
+    DB::commit();
+
+    // Send email after successful commit
+    Mail::to($user->email)->send(
+        new \App\Mail\UserPasswordMail($user, $plainPassword)
+    );
+
+    return redirect()
+        ->route('managers.index')
+        ->with('success', 'Manager created successfully.');
+
+} catch (\Exception $e) {
+
+    DB::rollBack();
+
+    return back()
+        ->withInput()
+        ->with('error', $e->getMessage());
+}
+}
 
     /**
      * Show manager details
@@ -68,41 +108,94 @@ $validated['password'] = Hash::make($validated['password']);
      */
     public function edit($id)
     {
-        $manager = Manager::findOrFail($id);
+        $fmr_manager = Manager::where('id', $id)->select('email', 'id', 'name', 'password', 'phone')->first();
+        
+        $status = User::where('email', $fmr_manager->email)->first();
+        $manager = null; 
+        
+        if(!$status){
+            //create the user if user does not exist
+            $manager =  User::create([
+                'fName'=>$fmr_manager->name,
+                'lName'=>'',
+                'email'=>$fmr_manager->email,
+                'password'=>$fmr_manager->password,
+                'phone'=>$fmr_manager->phone,
+                'user_type'=>(int)2,
 
+            ]);
+        }else{
+            $manager = $status;
+        }
+        unset($manager->password,$manager->user_type, $manager->id);
+        $manager->id = $fmr_manager->id;
         return view('layouts.managers.edit', compact('manager'));
     }
 
     /**
      * Update manager
      */
-    public function update(Request $request, $id)
-    {
-        $manager = Manager::findOrFail($id);
+   public function update(Request $request, $id)
+{
+    $manager = Manager::findOrFail($id);
 
-        $validated = $request->validate([
-            'name'  => 'required|string|max:255',
-            'email' => [
-                'required',
-                'email',
-                Rule::unique('managers')->ignore($manager->id),
-            ],
-            'phone' => 'nullable|string|max:20',
-            'password' => 'nullable|string|min:8|confirmed',
-        ]);
+    $validated = $request->validate([
+        'lName' => 'required|string|max:255',
+        'fName' => 'required|string|max:255',
+        'email' => [
+            'required',
+            'email',
+            Rule::unique('managers', 'email')->ignore($manager->id),
+        ],
+        'phone' => 'nullable|string|max:20',
+        'password' => 'nullable|string|min:8|confirmed',
+    ]);
 
-        if ($validated['password']) {
-            $validated['password'] = Hash::make($validated['password']);
-        } else {
-            unset($validated['password']);
+    DB::beginTransaction();
+
+    try {
+
+        // Find corresponding user using old email
+        $user = User::where('email', $manager->email)->first();
+
+        if ($user) {
+
+            $user->fname = $validated['fName'];
+            $user->lname = $validated['lName'];
+            $user->email = $validated['email'];
+
+            if (!empty($validated['password'])) {
+                $user->password = Hash::make($validated['password']);
+            }
+
+            $user->save();
         }
 
-        $manager->update($validated);
+        $manager->name = $validated['fName'].' '.$validated['lName'];
+        $manager->email = $validated['email'];
+        $manager->phone = $validated['phone'];
+
+        if (!empty($validated['password'])) {
+            $manager->password = Hash::make($validated['password']);
+        }
+
+        $manager->save();
+
+        DB::commit();
 
         return redirect()
             ->route('managers.index')
             ->with('success', 'Manager updated successfully.');
+
+    } catch (\Exception $e) {
+
+        DB::rollBack();
+
+        return back()
+            ->withInput()
+            ->with('error', $e->getMessage());
     }
+}
     // Show form to assign apartments to manager
 public function viewAssignedApartments($manager_id)
 {
@@ -113,6 +206,7 @@ public function viewAssignedApartments($manager_id)
         ->join('shelters', 'apartment_identities.shelter_id', '=', 'shelters.id')
         ->join('branch_models', 'apartment_identities.branch_id', '=', 'branch_models.id')
         ->join('location_models', 'apartment_identities.location_models_id', '=', 'location_models.id')
+        ->join('managers', 'apartment_identities.property_manager_id', '=', 'managers.id')
         ->select(
             'apartment_identities.*',
             'shelters.name as shelter_name',
@@ -120,7 +214,8 @@ public function viewAssignedApartments($manager_id)
             'location_models.name as location_name',
             'location_models.id as location_id',
             'branch_models.name as branch_name',
-            'branch_models.id as branch_id'
+            'branch_models.id as branch_id',
+            'managers.name as manager_name'
         )
         ->get();
 

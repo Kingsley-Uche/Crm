@@ -130,13 +130,14 @@
                                     {{ $apartment->apartment_property_ref }}
                                 </h6>
 
-                                <p class="mb-1"><strong>Branch:</strong> {{ $apartment->branch_name }}</p>
-                                <p class="mb-1"><strong>Location:</strong> {{ $apartment->location_name }}</p>
-                                <p class="mb-1"><strong>Shelter:</strong> {{ $apartment->shelter_name }}</p>
+                                <p class="mb-1"><strong>Branch:</strong> {{ ucfirst($apartment->branch_name) }}</p>
+                                <p class="mb-1"><strong>Location:</strong> {{ ucfirst($apartment->location_name) }}</p>
+                                <p class="mb-1"><strong>Shelter:</strong> {{ ucfirst($apartment->shelter_name) }}</p>
 
                                 <hr>
 
                                 <p class="mb-1"><strong>Address:</strong> {{ $apartment->address }}</p>
+                            
                                 <p class="mb-1"><strong>Manager:</strong> {{ $apartment->manager_name ?? 'Unassigned' }}</p>
 
                                 <small class="text-muted">

@@ -27,7 +27,8 @@
     <link href="{{ asset('assets/css/app.min.css') }}" id="app-style" rel="stylesheet" type="text/css" />
 <link rel="shortcut icon" href="{{ asset($brandLogo) }}">
     <!-- Scripts -->
-    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <style>
 .bg-success,.btn-success {
