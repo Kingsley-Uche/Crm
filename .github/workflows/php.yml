@@ -27,7 +27,7 @@ jobs:
       - name: Validate composer.json
         run: composer validate --strict
 
-      # 4. Install PHP dependencies
+      # 4. Install Composer dependencies
       - name: Install Composer dependencies
         run: composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
@@ -42,18 +42,27 @@ jobs:
       - name: Install NPM dependencies
         run: npm ci
 
-      # 7. Build Vite assets (FIX for your error)
+      # 7. Build Vite assets (THIS FIXES YOUR ERROR)
       - name: Build frontend assets
         run: npm run build
 
-      # 8. Deploy to cPanel via SSH
-      - name: Deploy to cPanel
+      # 8. Upload Vite build to server (CRITICAL FIX)
+      - name: Upload build folder
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "public/build"
+          target: "/home2/netporta/repositories/estate_manager/public"
+
+      # 9. Deploy backend via SSH
+      - name: Deploy Laravel backend
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          port: 22
           script: |
             cd /home2/netporta/repositories/estate_manager
 
