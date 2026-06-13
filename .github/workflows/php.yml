@@ -1,0 +1,62 @@
+name: Laravel CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout code
+      - uses: actions/checkout@v4
+
+      # 2. Setup PHP
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.4
+          extensions: mbstring, pdo, xml, bcmath, fileinfo, openssl
+          coverage: none
+
+      # 3. Validate Composer files
+      - name: Validate composer.json and composer.lock
+        run: composer validate --strict
+
+      # 4. Cache Composer dependencies (FIXED: cache vendor properly)
+      - name: Cache Composer packages
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      # 5. Install PHP dependencies
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction --optimize-autoloader
+
+      # 6. Setup Node (IMPORTANT for Vite)
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # 7. Install Node dependencies
+      - name: Install NPM dependencies
+        run: npm ci
+
+      # 8. Build Vite assets (FIXES YOUR ERROR)
+      - name: Build frontend assets
+        run: npm run build
+
+      # 9. (Optional) Run tests
+      # - name: Run test suite
+      #   run: vendor/bin/phpunit
