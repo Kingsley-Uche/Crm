@@ -53,7 +53,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: "public/build"
+          source: "/build"
           target: "/home2/netporta/repositories/estate_manager/public"
 
       # 9. Deploy backend via SSH
