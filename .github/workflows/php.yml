@@ -1,21 +1,20 @@
-name: Laravel CI
+name: Laravel Build & Deploy to cPanel
 
 on:
   push:
-    branches: ["main"]
-  pull_request:
     branches: ["main"]
 
 permissions:
   contents: read
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
       # 1. Checkout code
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       # 2. Setup PHP
       - name: Setup PHP
@@ -23,40 +22,48 @@ jobs:
         with:
           php-version: 8.4
           extensions: mbstring, pdo, xml, bcmath, fileinfo, openssl
-          coverage: none
 
-      # 3. Validate Composer files
-      - name: Validate composer.json and composer.lock
+      # 3. Validate Composer
+      - name: Validate composer.json
         run: composer validate --strict
 
-      # 4. Cache Composer dependencies (FIXED: cache vendor properly)
-      - name: Cache Composer packages
-        uses: actions/cache@v3
-        with:
-          path: vendor
-          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-php-
-
-      # 5. Install PHP dependencies
+      # 4. Install PHP dependencies
       - name: Install Composer dependencies
-        run: composer install --prefer-dist --no-progress --no-interaction --optimize-autoloader
+        run: composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
-      # 6. Setup Node (IMPORTANT for Vite)
+      # 5. Setup Node
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      # 7. Install Node dependencies
+      # 6. Install Node dependencies
       - name: Install NPM dependencies
         run: npm ci
 
-      # 8. Build Vite assets (FIXES YOUR ERROR)
+      # 7. Build Vite assets (FIX for your error)
       - name: Build frontend assets
         run: npm run build
 
-      # 9. (Optional) Run tests
-      # - name: Run test suite
-      #   run: vendor/bin/phpunit
+      # 8. Deploy to cPanel via SSH
+      - name: Deploy to cPanel
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          script: |
+            cd /home2/netporta/repositories/estate_manager
+
+            echo "Pulling latest code..."
+            git pull origin main
+
+            echo "Installing PHP dependencies..."
+            composer install --no-dev --optimize-autoloader
+
+            echo "Clearing Laravel cache..."
+            php artisan optimize:clear
+
+            echo "Deployment complete!"
