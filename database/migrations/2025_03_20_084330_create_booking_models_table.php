@@ -14,7 +14,7 @@ return new class extends Migration
     Schema::create('booking_models', function (Blueprint $table) {
         $table->id();
         $table->unsignedBigInteger('shelter_id');
-        $table->unsignedBigInteger('block_model_id');
+        $table->unsignedBigInteger('block_model_id')->nullable();
         $table->unsignedBigInteger('payment_time_id')->nullable();
         $table->date('start_date');
         $table->date('end_date');
