@@ -42,21 +42,25 @@ jobs:
       - name: Install NPM dependencies
         run: npm ci
 
-      # 7. Build Vite assets (THIS FIXES YOUR ERROR)
+      # 7. Build Vite assets (CRITICAL FIX)
       - name: Build frontend assets
         run: npm run build
 
-      # 8. Upload Vite build to server (CRITICAL FIX)
+      # 8. Debug (IMPORTANT - prevents silent failures)
+      - name: Verify build exists
+        run: ls -la public/build
+
+      # 9. Upload Vite build to server (FIXED PATH)
       - name: Upload build folder
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: "/build"
+          source: "public/build/"
           target: "/home2/netporta/repositories/estate_manager/public"
 
-      # 9. Deploy backend via SSH
+      # 10. Deploy backend via SSH
       - name: Deploy Laravel backend
         uses: appleboy/ssh-action@v1.0.3
         with:
