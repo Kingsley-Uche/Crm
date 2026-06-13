@@ -39,10 +39,20 @@
     <div class="col-12">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Complaints List</h4>
-                <p class="card-title-desc">
-                    View all submitted complaints and manage them accordingly.
-                </p>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="card-title">Complaints List</h4>
+        <p class="card-title-desc">
+            View all submitted complaints and manage them accordingly.
+        </p>
+    </div>
+
+    <div>
+        <a href="{{ route('complaints.create') }}" class="btn btn-success">
+             Create Complaint
+        </a>
+    </div>
+</div>
 
                 <table id="selection-datatable" class="table dt-responsive nowrap w-100">
                     <thead>

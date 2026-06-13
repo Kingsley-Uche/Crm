@@ -15,6 +15,7 @@ return new class extends Migration
             $table->foreignId('block_id')->nullable()->constrained('block_models')->onDelete('cascade');
             $table->foreignId('apartment_id')->nullable()->constrained('apartment_identities')->onDelete('cascade');
             $table->string('unit_number')->nullable();
+             $table->foreignId('location_id')->nullable()->constrained('location_models')->onDelete('set null');
 
             $table->string('subject');
             $table->text('description')->nullable();

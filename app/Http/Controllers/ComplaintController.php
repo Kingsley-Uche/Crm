@@ -36,12 +36,7 @@ class ComplaintController extends Controller
         ) {
             return redirect()->back()->with('error', 'Unauthorized access to create complaint.');
         }
-
-        $blocks = json_encode(
-            BlockModel::with(['apartments:id,block_models_id,address,unit_number'])
-                ->select('id', 'name')
-                ->get()
-        );
+        $branches = BranchModel::select('id', 'name')->get();
 
         $tenants = Tenant::select('id', 'full_name')->get();
 
@@ -72,7 +67,7 @@ class ComplaintController extends Controller
            
         ];
 
-        return view('layouts.complaints.create', compact('blocks', 'tenants', 'fields'));
+        return view('layouts.complaints.create', compact('blocks', 'tenants', 'fields','branches'));
     }
 
     public function store(Request $request)
@@ -236,5 +231,13 @@ class ComplaintController extends Controller
         }
 
         return view('layouts.reports.complaints_report', compact('complaints'));
+    }
+    public function fetchLocationsByBranchId($branch_id){
+        //fetch using fetch from frontend
+
+    }
+    public function fetchApartmntsByLocationId($location_id){
+        //fetch via fetch on frontend
+
     }
 }

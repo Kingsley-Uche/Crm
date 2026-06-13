@@ -27,6 +27,7 @@ class PestModel extends Model
         'appointment',
         'completion_date',
         'pest_control_fee',
+        'location_id'
     ];
 
    public function block()

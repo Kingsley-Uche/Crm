@@ -80,10 +80,27 @@ public function ShelterInLocation($shelter_id, $location_id)
     $permissions = Session::get('permissions');
     $shelter_id = (int) $shelter_id;
     $location_id = (int) $location_id;
+    $prop = false;
+    $manager_id = null;
     
     if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'read_property')))) {
         return redirect()->back()->with('error', 'Unauthorized access to apartments.');
     }
+   $prop = false;
+$manager_id = null;
+
+if ((int)$user->user_type === 2) {
+    // Property admin
+    $prop = true;
+
+    $manager = Manager::where('email', $user->email)
+        ->select('id')
+        ->first();
+
+    $manager_id = $manager?->id;
+}
+
+$shelter_name =Shelter::where('id', $shelter_id)->select('name')->first();
 $apartments = ApartmentIdentity::select(
     'apartment_identities.*',
 
@@ -107,16 +124,31 @@ $apartments = ApartmentIdentity::select(
 ->where('apartment_identities.location_models_id', $location_id)
 ->where('apartment_identities.shelter_id', $shelter_id)
 
-->leftJoin('estate_owners', 'estate_owners.id', '=', 'apartment_identities.landlord_id')
+->when($prop && $manager_id, function ($query) use ($manager_id) {
+    $query->where('apartment_identities.manager_id', $manager_id);
+})
+
+->leftJoin(
+    'estate_owners',
+    'estate_owners.id',
+    '=',
+    'apartment_identities.landlord_id'
+)
 
 ->leftJoin('booking_models', function ($join) {
     $join->on('booking_models.apartment_id', '=', 'apartment_identities.id')
          ->where('booking_models.is_cancelled', false);
 })
 
-->leftJoin('tenants', 'tenants.id', '=', 'booking_models.tenant_id')
+->leftJoin(
+    'tenants',
+    'tenants.id',
+    '=',
+    'booking_models.tenant_id'
+)
 
 ->get();
+
 $location_data = LocationModel::where('id', $location_id)->select('id', 'name')->first();
 
    $shelter_amenities = Shelter_Amenities::join(
@@ -174,6 +206,7 @@ $location_data = LocationModel::where('id', $location_id)->select('id', 'name')-
         'amenity_apartment' => $amenity_apartment,
         'pay_time' => $pay_freq,
         'tenants' => $tenants,
+        'shelter_name'=>$shelter_name
     ]);
 }
 }

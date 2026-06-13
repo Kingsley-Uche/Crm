@@ -33,9 +33,10 @@
 
             <div class="col-md-6">
                 <h4 class="mb-1">
-                    {{ ucwords($location->name) }}
+                    {{ ucwords($location->name)  }} - {{ ucfirst($shelter_name->name) }}s
                 </h4>
-
+                 
+                    
                 <small class="text-muted">
                     Total Apartments: {{ $apartments->count() }}
                 </small>

@@ -5,44 +5,6 @@
     <div class="alert alert-success">{{ session('success') }}</div>
 @endif
 
-<style>
-    /* 1. Highlighted dropdown option (when navigating via keyboard or hover) */
-.select2-container--default .select2-results__option--highlighted[aria-selected] {
-  background-color: #198754 !important;  /* Bootstrap “success” */
-  color: #fff !important;
-}
-
-/* 2. Selected value text (single-select) */
-.select2-container--default .select2-selection--single .select2-selection__rendered {
-  color: #198754;        /* text in box becomes green */
-  font-weight: 600;
-}
-
-/* 3. Placeholder text (optional)—make it slightly muted */
-.select2-container--default .select2-selection--single .select2-selection__placeholder {
-  color: rgba(25, 135, 84, 0.5);
-}
-
-/* 4. Remove the default blue border when focused; use green instead */
-.select2-container--default .select2-selection--single:focus,
-.select2-container--default .select2-selection--single:focus .select2-selection__rendered {
-  border-color: #198754 !important;
-  box-shadow: 0 0 0 0.1rem rgba(25, 135, 84, 0.25);
-}
-
-/* 5. “X” (clear) icon for single-select—make it green */
-.select2-container--default .select2-selection--single .select2-selection__clear {
-  color: #198754;
-}
-
-/* 6. Multi-select “choice” pills (if you ever use select2[multiple]) */
-.select2-container--default .select2-selection--multiple .select2-selection__choice {
-  background-color: #198754 !important;
-  border-color: #198754 !important;
-  color: #fff !important;
-}
-
-</style>
 
 <div class="row">
     <div class="col-12">
@@ -100,7 +62,7 @@
                             <label for="tenant_id">Tenant <span class="text-danger">*</span></label>
                             <select name="tenant_id"
                                     id="tenant_id"
-                                    class="form-select select2 @error('tenant_id') is-invalid @enderror"
+                                    class="form-select js-searchable @error('tenant_id') is-invalid @enderror"
                                     required>
                                 <option value="">— Select Tenant —</option>
                                 @foreach($tenants as $tenant)
@@ -120,7 +82,7 @@
                             <label for="apartment_id">Apartment <span class="text-danger">*</span></label>
                             <select name="apartment_id"
                                     id="apartment_id"
-                                    class="form-select select2 @error('apartment_id') is-invalid @enderror"
+                                    class="form-select js-searchable @error('apartment_id') is-invalid @enderror"
                                     required>
                                 <option value="">— Select Apartment —</option>
                                 @foreach($apartments as $apt)
@@ -211,7 +173,7 @@
                             <label for="account_type">Account Type <span class="text-danger">*</span></label>
                             <select name="account_type"
                                     id="account_type"
-                                    class="form-select @error('account_type') is-invalid @enderror"
+                                    class="form-select js-searchable @error('account_type') is-invalid @enderror"
                                     required>
                                 <option value="">— Select Account Type —</option>
                                 <option value="REN"   {{ old('account_type') == 'REN'   ? 'selected' : '' }}>REN</option>
@@ -228,7 +190,7 @@
                             <label for="escalation_policy">Escalation Policy <span class="text-danger">*</span></label>
                             <select name="escalation_policy"
                                     id="escalation_policy"
-                                    class="form-select @error('escalation_policy') is-invalid @enderror"
+                                    class="form-select js-searchable @error('escalation_policy') is-invalid @enderror"
                                     required>
                                 <option value="">— Select Policy —</option>
                                 <option value="STANDARD"      {{ old('escalation_policy') == 'STANDARD'      ? 'selected' : '' }}>STANDARD</option>
@@ -246,7 +208,7 @@
                             <label for="payment_method">Payment Method <span class="text-danger">*</span></label>
                             <select name="payment_method"
                                     id="payment_method"
-                                    class="form-select @error('payment_method') is-invalid @enderror"
+                                    class="form-select js-searchable @error('payment_method') is-invalid @enderror"
                                     required>
                                 <option value="">— Select Payment Method —</option>
                                 <option value="DD"       {{ old('payment_method') == 'DD'       ? 'selected' : '' }}>Direct Debit</option>
@@ -278,26 +240,8 @@
 @endsection
 
 @section('scripts')
-    {{-- jQuery (required for Select2) --}}
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    {{-- Select2 CSS/JS --}}
-    <link
-      href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
-      rel="stylesheet"
-    />
-    <script
-      src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"
-    ></script>
-
     <script>
-      $(document).ready(function() {
-        // Initialize Select2 on tenant & apartment fields
-        $('#tenant_id, #apartment_id').select2({
-          width: '100%',
-          placeholder: 'Select an option',
-          allowClear: true
-        });
+      
 
         // Auto-fill Unit Number when apartment changes
         const apartments = @json($apartments);

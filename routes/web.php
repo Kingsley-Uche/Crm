@@ -31,6 +31,7 @@ use App\Http\Controllers\SubscriptionAccountController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\ManagerController;
+use App\Http\Controllers\InvoiceController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -115,7 +116,7 @@ Route::middleware('subscription')->group(function () {
             Route::post('/store', [PropertyController::class, 'storeApartment'])->name('property.store');
             Route::get('/{location_id}/{shelter_id}', [PropertyController::class, 'showLocation'])->name('property.apartments');
             Route::put('/{id}/update', [PropertyController::class, 'ApartmentUpdate'])->name('property.apartment.update');
-            Route::delete('/{id}/delete', [PropertyController::class, 'blockDestroy'])->name('property.destroy');
+            Route::delete('/{id}/delete', [PropertyController::class, 'ApartmentDestroy'])->name('property.apartment.destroy');
             Route::get('/blocks/search', [PropertyController::class, 'search'])->name('property.search');
             Route::get('/blocks/import', [PropertyController::class, 'loadImport'])->name('property.import');
             Route::post('/blocks/import', [PropertyController::class, 'import'])->name('property.import.upload');
@@ -324,6 +325,8 @@ Route::middleware('subscription')->group(function () {
             // Assign role(s) to user routes
             Route::get('/users/{user}/roles', [RolesController::class, 'editUserRoles'])->name('access.users.roles.edit');
             Route::post('/users/{user}/roles', [RolesController::class, 'updateUserRoles'])->name('access.users.roles.update');
+
+              
         });
         
          Route::prefix('complaints')->group(function () {
@@ -336,7 +339,26 @@ Route::middleware('subscription')->group(function () {
             
         });
      
+        //invoice route 
+Route::prefix('invoice')->name('invoice.')->group(function () {
 
+    // CRUD
+    Route::get('/', [InvoiceController::class, 'index'])->name('index');
+    Route::get('/create', [InvoiceController::class, 'create'])->name('create');
+    Route::post('/store', [InvoiceController::class, 'store'])->name('store');
+
+    Route::get('/show/{id}', [InvoiceController::class, 'show'])->name('show');
+    Route::get('/edit/{id}', [InvoiceController::class, 'edit'])->name('edit');
+    Route::put('/update/{id}', [InvoiceController::class, 'update'])->name('update');
+    Route::delete('/delete/{id}', [InvoiceController::class, 'destroy'])->name('destroy');
+
+    // AJAX Routes
+    Route::get('/locations/{branchId}', [InvoiceController::class, 'getLocations'])
+        ->name('locations');
+
+    Route::get('/apartments/{locationId}', [InvoiceController::class, 'getApartments'])
+        ->name('apartments');
+});
     // =========================
     // Subscription Plans
     // =========================

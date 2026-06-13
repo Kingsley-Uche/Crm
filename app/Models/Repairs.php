@@ -29,6 +29,7 @@ class Repairs extends Model
         'due_date',
         'appointment',
         'completion_date',
+        'location_id'
     ];
 
     protected $dates = [

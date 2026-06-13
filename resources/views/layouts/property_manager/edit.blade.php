@@ -96,11 +96,26 @@
         <div class="col-lg-12">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="card-title mb-4">
-                        Editing Apartments — 
-                        Location: <strong>{{ $locations->firstWhere('id', $location_id)->name ?? 'N/A' }}</strong> | 
-                        Shelter: <strong>{{ $shelters->firstWhere('id', $shelter_id)->name ?? 'N/A' }}</strong>
-                    </h4>
+                    
+                    <div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+        <h4 class="card-title mb-0">
+            Editing Apartments —
+            Location:
+            <strong>{{ $locations->firstWhere('id', $location_id)->name ?? 'N/A' }}</strong>
+            |
+            Shelter:
+            <strong>{{ $shelters->firstWhere('id', $shelter_id)->name ?? 'N/A' }}</strong>
+        </h4>
+    </div>
+
+    <div class="col-md-4 text-md-end mt-2 mt-md-0">
+        <a href="{{ route('property.create') }}" class="btn btn-success">
+            <i class="ri-add-line me-1"></i>
+            Create Apartment
+        </a>
+    </div>
+</div>
 
                     @if (session('success'))
                         <div class="alert alert-success">{{ session('success') }}</div>
@@ -122,7 +137,9 @@
                                 <div class="apartment-card">
                                     <h5 class="mb-3">Apartment #{{ $apartment->id }}</h5>
 
-                                    <form method="POST" action="{{ route('property.apartment.update', $apartment->id) }}">
+                                    
+                                        <form class="ajax-apartment-form" method="POST" action="{{ route('property.apartment.update', $apartment->id) }}"
+>
                                         @csrf
                                         @method('PUT')
 
@@ -151,29 +168,31 @@
                                         </div>
 
                                         <!-- Custom Searchable Landlord Dropdown -->
-                                        <div class="mb-3">
-                                            <label class="form-label">Landlord</label>
-                                            <div class="custom-select-wrapper">
-                                                <input type="text" 
-                                                       class="custom-select-search" 
-                                                       placeholder="Search landlord..." 
-                                                       readonly>
-                                                <input type="hidden" 
-                                                       name="landlord_id" 
-                                                       class="landlord-hidden"
-                                                       value="{{ $apartment->landlord_id }}">
-                                                <div class="custom-select-dropdown">
-                                                    <div class="custom-select-option" data-value="">None</div>
-                                                    @foreach ($landlords as $landlord)
-                                                        <div class="custom-select-option" 
-                                                             data-value="{{ $landlord->id }}"
-                                                             {{ $apartment->landlord_id == $landlord->id ? 'data-selected="true"' : '' }}>
-                                                            {{ trim($landlord->fName ?? '' . ' ' . $landlord->lName ?? '') }}
-                                                        </div>
-                                                    @endforeach
-                                                </div>
-                                            </div>
-                                        </div>
+                                        
+                                            <div class="mb-3">
+    <label class="form-label">Landlord</label>
+
+    <select
+        name="landlord_id"
+        class="form-control js-searchable">
+
+        <option value="">Select Landlord</option>
+
+        @foreach($landlords as $landlord)
+            <option
+                value="{{ $landlord->id }}"
+                {{ $apartment->landlord_id == $landlord->id ? 'selected' : '' }}>
+
+                {{ trim(($landlord->fName ?? '') . ' ' . ($landlord->lName ?? '')) }}
+                @if(!empty($landlord->email))
+                    - {{ $landlord->email }}
+                @endif
+
+            </option>
+        @endforeach
+
+    </select>
+</div>
 
                                         <!-- Editable Amenities -->
                                         <div class="mb-4">
@@ -194,11 +213,28 @@
                                             </div>
                                         </div>
 
-                                        <button type="submit" class="btn btn-success w-100">
-                                            Save Changes
-                                        </button>
+                                        <div class="d-flex gap-2 mt-3">
+
+    <button
+        type="submit"
+        class="btn btn-success flex-fill save-apartment-btn"
+        title="Save Changes">
+        <i class="ri-save-line text-white"></i>
+    </button>
+
+    <button
+        type="button"
+        class="btn btn-danger delete-apartment-btn"
+        data-id="{{ $apartment->id }}"
+        data-url="{{ route('property.apartment.destroy', $apartment->id) }}"
+        title="Delete Apartment">
+        <i class="ri-delete-bin-line text-white"></i>
+    </button>
+
+</div>
                                     </form>
                                 </div>
+                               
                             </div>
                         @empty
                             <div class="col-12">
@@ -213,62 +249,164 @@
 @endsection
 
 @section('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
+<script>
+document.addEventListener('DOMContentLoaded', function () {
 
-            const wrappers = document.querySelectorAll('.custom-select-wrapper');
+    /* ========================================
+       AJAX SAVE APARTMENT
+    ======================================== */
+    document.addEventListener('submit', async function (e) {
 
-            wrappers.forEach(wrapper => {
-                const searchInput = wrapper.querySelector('.custom-select-search');
-                const hiddenInput = wrapper.querySelector('input[type="hidden"]');
-                const dropdown = wrapper.querySelector('.custom-select-dropdown');
-                const options = wrapper.querySelectorAll('.custom-select-option');
+        const form = e.target;
 
-                // Set initial selected value
-                const selected = Array.from(options).find(opt => opt.dataset.value === hiddenInput.value);
-                if (selected) {
-                    searchInput.value = selected.textContent.trim();
+        if (!form.matches('.ajax-apartment-form')) {
+            return;
+        }
+
+        e.preventDefault();
+
+        const submitBtn = form.querySelector('.save-apartment-btn');
+        const originalText = submitBtn.innerHTML;
+
+        try {
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML =
+                '<span class="spinner-border spinner-border-sm"></span> Saving...';
+
+            const formData = new FormData(form);
+
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+
+                let errors = '';
+
+                if (result.errors) {
+                    Object.values(result.errors).forEach(items => {
+                        errors += items.join('<br>') + '<br>';
+                    });
                 } else {
-                    searchInput.value = "None";
+                    errors = result.message || 'Validation failed';
                 }
 
-                // Click to toggle dropdown
-                searchInput.addEventListener('click', () => {
-                    wrapper.classList.toggle('open');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    html: errors
                 });
 
-                // Live search filter
-                searchInput.addEventListener('input', () => {
-                    const filter = searchInput.value.toLowerCase().trim();
-                    options.forEach(option => {
-                        const text = option.textContent.toLowerCase();
-                        option.style.display = text.includes(filter) ? '' : 'none';
-                    });
-                });
+                return;
+            }
 
-                // Option selection
-                options.forEach(option => {
-                    option.addEventListener('click', () => {
-                        searchInput.value = option.textContent.trim();
-                        hiddenInput.value = option.dataset.value;
-                        wrapper.classList.remove('open');
-
-                        options.forEach(opt => opt.classList.remove('selected'));
-                        option.classList.add('selected');
-                    });
-                });
+            Swal.fire({
+                icon: 'success',
+                title: 'Saved',
+                text: result.message || 'Apartment updated successfully'
             });
 
-            // Close dropdowns when clicking outside
-            document.addEventListener('click', (e) => {
-                wrappers.forEach(wrapper => {
-                    if (!wrapper.contains(e.target)) {
-                        wrapper.classList.remove('open');
-                    }
-                });
+        } catch (error) {
+
+            console.error(error);
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Unable to save apartment.'
             });
 
-            console.log('{{ $apartments->count() }} apartments loaded with updated shelter amenities.');
+        } finally {
+
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+
+    });
+
+    /* ========================================
+       DELETE APARTMENT
+    ======================================== */
+    document.addEventListener('click', async function (e) {
+
+        if (!e.target.classList.contains('delete-apartment-btn')) {
+            return;
+        }
+
+        const button = e.target;
+
+        const apartmentId = button.dataset.id;
+        const deleteUrl = button.dataset.url;
+
+        const confirmDelete = await Swal.fire({
+            title: 'Delete Apartment?',
+            text: 'This action cannot be undone.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Delete'
         });
-    </script>
+
+        if (!confirmDelete.isConfirmed) {
+            return;
+        }
+
+        try {
+
+            button.disabled = true;
+
+            const response = await fetch(deleteUrl, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN':
+                        document.querySelector(
+                            'meta[name="csrf-token"]'
+                        ).content,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Delete failed');
+            }
+
+            const card = button.closest('.col-md-6');
+
+            if (card) {
+                card.remove();
+            }
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Deleted',
+                text: result.message || 'Apartment deleted'
+            });
+
+        } catch (error) {
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message
+            });
+
+        } finally {
+
+            button.disabled = false;
+        }
+
+    });
+
+});
+</script>
 @endsection

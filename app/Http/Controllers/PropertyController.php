@@ -344,8 +344,9 @@ public function showLocation($location_id, $shelter_id)
 
     // Fetch supporting data
     $shelters  = Shelter::all();
-    $landlords = EstateOwner::all();
-    $locations = LocationModel::all();
+    $landlords = EstateOwner::select('id','fName', 'lName','email','phones')->get();
+    
+    $locations = LocationModel::select('id','name')->get();
 
     return view('layouts.property_manager.edit', [
         'apartments'   => $apartments,
@@ -357,8 +358,9 @@ public function showLocation($location_id, $shelter_id)
     ]);
 }
 
-public function ApartmentUpdate(Request $request, $id)
+public function ApartmentUpdate(Request $request,int $id)
 {
+    
     $user = Session::get('user');
     $permissions = Session::get('permissions');
 
@@ -367,8 +369,7 @@ public function ApartmentUpdate(Request $request, $id)
         (!$user->system_admin &&
         (!$permissions || !$permissions->contains('slug', 'update_property')))
     ) {
-        return redirect()->back()
-            ->with('error', 'Unauthorized access to property management.');
+        return response()->json(['message'=>'Unauthorized access'],422);
     }
 
     // Validate incoming request
@@ -386,6 +387,7 @@ public function ApartmentUpdate(Request $request, $id)
     ]);
 
     $apartment = ApartmentIdentity::findOrFail($id);
+    
 
     // Normalize text
     $propertyRef = strtolower(trim($validated['property_ref']));
@@ -410,12 +412,10 @@ public function ApartmentUpdate(Request $request, $id)
 
         foreach ($request->amenities as $amenity_id => $qty) {
 
-            Shelter_Amenities::updateOrCreate(
-                [
-                    'id_apartment_id' => $apartment->id,
-                      'amenity_id'   => $amenity_id,
-                    
-                ],
+            Shelter_Amenities::where('id_apartment_id', $apartment->id)
+            ->where('amenity_id',$amenity_id)
+            ->update(
+                
                 [
                     'amenity_number' => (int) $qty,
                   
@@ -428,23 +428,22 @@ public function ApartmentUpdate(Request $request, $id)
         Cache::forget('amenities_list');
     }
 
-    return redirect()
-        ->route('property.index')
-        ->with('success', 'Apartment updated successfully!');
+     return response()->json(['message'=>'Apartment updated successfully'],200);
 }
 
 
-    public function blockDestroy($id)
+    public function ApartmentDestroy($id)
     {
         $user = Session::get('user');
         $permissions = Session::get('permissions'); 
         if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'delete_property')))) {
             return redirect()->back()->with('error', 'Unauthorized access to property management.');
         }
-        $block = BlockModel::findOrFail($id);
-        $block->delete();
+        ApartmentIdentity::where('id',$id)->delete();
+        return response()->json(['message'=>'Apartment deleted successfully'],200);
+        
 
-        return redirect()->route('property.index')->with('success', 'Block deleted successfully!');
+        
     }
 
     // Fetch LGVT (Local Government Area)

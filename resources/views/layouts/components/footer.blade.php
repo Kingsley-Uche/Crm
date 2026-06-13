@@ -91,52 +91,72 @@
 </script>
 <script>
 class SimpleSearchableSelect {
-    constructor(selector) {
-        this.elements = document.querySelectorAll(selector);
+
+    constructor(selector = '.js-searchable') {
+        this.selector = selector;
         this.init();
     }
 
     init() {
-        this.elements.forEach(select => {
+        document.querySelectorAll(this.selector).forEach(select => {
+
+            // prevent duplicate initialization
+            if (select.dataset.searchableInitialized === 'true') {
+                return;
+            }
+
             this.createUI(select);
         });
     }
 
     createUI(select) {
+
+        select.dataset.searchableInitialized = 'true';
+
         const wrapper = document.createElement('div');
-        wrapper.classList.add('searchable-wrapper');
+        wrapper.className = 'searchable-wrapper';
 
         const input = document.createElement('input');
         input.type = 'text';
-        input.classList.add('searchable-input');
+        input.className = 'form-control searchable-input';
         input.placeholder = 'Search...';
-        input.readOnly = false;
 
         const dropdown = document.createElement('div');
-        dropdown.classList.add('searchable-dropdown');
-
-        const options = Array.from(select.options);
+        dropdown.className = 'searchable-dropdown';
 
         const buildDropdown = (filter = '') => {
+
             dropdown.innerHTML = '';
 
-            options.forEach(option => {
+            // ALWAYS read current options
+            Array.from(select.options).forEach(option => {
+
                 if (!option.value) return;
 
                 if (
-                    option.text.toLowerCase().includes(filter.toLowerCase())
+                    option.text
+                        .toLowerCase()
+                        .includes(filter.toLowerCase())
                 ) {
+
                     const item = document.createElement('div');
-                    item.classList.add('searchable-item');
+
+                    item.className = 'searchable-item';
                     item.textContent = option.text;
                     item.dataset.value = option.value;
 
                     item.addEventListener('click', () => {
+
                         select.value = option.value;
                         input.value = option.text;
+
                         dropdown.style.display = 'none';
 
-                        select.dispatchEvent(new Event('change'));
+                        select.dispatchEvent(
+                            new Event('change', {
+                                bubbles: true
+                            })
+                        );
                     });
 
                     dropdown.appendChild(item);
@@ -144,38 +164,83 @@ class SimpleSearchableSelect {
             });
         };
 
+        /* open dropdown */
         input.addEventListener('focus', () => {
             dropdown.style.display = 'block';
-            buildDropdown();
+            buildDropdown(input.value);
         });
 
-        input.addEventListener('input', (e) => {
+        /* filter */
+        input.addEventListener('input', e => {
+            dropdown.style.display = 'block';
             buildDropdown(e.target.value);
         });
 
-        document.addEventListener('click', (e) => {
+        /* close */
+        document.addEventListener('click', e => {
             if (!wrapper.contains(e.target)) {
                 dropdown.style.display = 'none';
             }
         });
 
+        /* sync if select changes programmatically */
+        select.addEventListener('change', () => {
+
+            const selectedOption =
+                select.options[select.selectedIndex];
+
+            input.value = selectedOption
+                ? selectedOption.text
+                : '';
+        });
+
         wrapper.appendChild(input);
         wrapper.appendChild(dropdown);
 
-        select.style.display = 'none';
         select.parentNode.insertBefore(wrapper, select);
+
+        select.style.display = 'none';
+
         wrapper.appendChild(select);
 
         // preload selected value
         if (select.value) {
-            const selectedText = select.options[select.selectedIndex].text;
-            input.value = selectedText;
+            input.value =
+                select.options[select.selectedIndex]?.text || '';
         }
+    }
+
+    refresh(select) {
+
+        const wrapper = select.closest('.searchable-wrapper');
+
+        if (wrapper) {
+
+            const parent = wrapper.parentNode;
+
+            wrapper.remove();
+
+            select.style.display = '';
+
+            delete select.dataset.searchableInitialized;
+
+            parent.appendChild(select);
+        }
+
+        this.createUI(select);
+    }
+
+    refreshAll() {
+
+        document.querySelectorAll(this.selector)
+            .forEach(select => this.refresh(select));
     }
 }
 
-// INIT
+/* Create one global instance */
+const searchable = new SimpleSearchableSelect('.js-searchable');
+
 document.addEventListener('DOMContentLoaded', () => {
-    new SimpleSearchableSelect('.js-searchable');
+    searchable.init();
 });
 </script>

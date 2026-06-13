@@ -61,6 +61,7 @@ try {
         'lname'      => $validated['lName'],
         'email'      => $validated['email'],
         'user_type'  => 2,
+        'is_system_admin'=>1,
         'created_by' => Auth::id(),
         'password'   => $hashedPassword,
     ]);
@@ -122,6 +123,7 @@ try {
                 'password'=>$fmr_manager->password,
                 'phone'=>$fmr_manager->phone,
                 'user_type'=>(int)2,
+                'is_system_admin'=>(int)1,
 
             ]);
         }else{

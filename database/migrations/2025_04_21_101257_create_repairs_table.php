@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('block_id')->index();
             $table->unsignedBigInteger('apartment_id')->nullable()->index();
+            $table->unsignedBigInteger('location_id')->nullable()->index();
             $table->string('unit_number')->nullable()->index();
             $table->date('received_date')->nullable();
             $table->string('progress')->nullable();
@@ -31,7 +32,7 @@ return new class extends Migration
             $table->string('appointment')->nullable();
             $table->date('completion_date')->nullable();
             $table->timestamps();
-
+            $table->foreign('location_id')->references('id')->on('location_models')->onDelete('set null');
             // Optional: foreign keys if related
             // $table->foreign('block_id')->references('id')->on('blocks')->onDelete('cascade');
             // $table->foreign('apartment_id')->references('id')->on('apartments')->onDelete('set null');

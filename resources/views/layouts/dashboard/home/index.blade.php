@@ -73,7 +73,7 @@
                     <ul class="list-group list-group-flush">
                         @foreach ($shelterTypeCounts as $item)
                             <li class="list-group-item d-flex justify-content-between">
-                                <span>{{ $item->shelter_name }}</span>
+                                <span>{{ ucfirst($item->shelter_name) }}s</span>
                                 <strong>{{ $item->total }}</strong>
                             </li>
                         @endforeach
