@@ -78,5 +78,6 @@ jobs:
 
             echo "Clearing Laravel cache..."
             php artisan optimize:clear
-
+            echo "running migrations"
+            php artisan migrate --force
             echo "Deployment complete!"
