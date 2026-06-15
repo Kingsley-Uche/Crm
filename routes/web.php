@@ -118,8 +118,8 @@ Route::middleware('subscription')->group(function () {
             Route::put('/{id}/update', [PropertyController::class, 'ApartmentUpdate'])->name('property.apartment.update');
             Route::delete('/{id}/delete', [PropertyController::class, 'ApartmentDestroy'])->name('property.apartment.destroy');
             Route::get('/blocks/search', [PropertyController::class, 'search'])->name('property.search');
-            Route::get('/blocks/import', [PropertyController::class, 'loadImport'])->name('property.import');
-            Route::post('/blocks/import', [PropertyController::class, 'import'])->name('property.import.upload');
+            Route::get('/import', [PropertyController::class, 'loadImport'])->name('property.import');
+            Route::post('/import', [PropertyController::class, 'import'])->name('property.import.upload');
             Route::post('/lgvt', [PropertyController::class, 'getLgvt'])->name('get.lgvt');
         });
 

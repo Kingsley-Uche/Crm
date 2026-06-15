@@ -16,7 +16,7 @@ class PermissionSeeder extends Seeder
         $resources = [
             'apartments', 'asb', 'booking', 'estate_owner', 'fob',
             'location', 'maintenance', 'park', 'rent','pest_control',
-            'property','reports', 'shelter', 'tenancy', 'tenant', 'voids','complaints','branches','managers'
+            'property','reports', 'shelter', 'tenancy', 'tenant', 'voids','complaints','branches','managers', 'invoice'
         ];
 
         $actions = ['create', 'read', 'update', 'delete'];

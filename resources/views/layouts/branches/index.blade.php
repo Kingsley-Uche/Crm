@@ -50,7 +50,7 @@
                             <th>Phone</th>
                             <th>Email</th>
                             <th>Manager</th>
-                            <th>Bank</th>
+                            <th>Bank Data</th>
                             <th>Created</th>
                             <th>Action</th>
                         </tr>
@@ -64,7 +64,10 @@
                                 <td>{{ $branch->contact_phone ?? 'N/A' }}</td>
                                 <td>{{ $branch->contact_email ?? 'N/A' }}</td>
                                 <td>{{ $branch->manager_name ?? 'N/A' }}</td>
-                                <td>{{ $branch->bank_name ?? 'N/A' }}</td>
+                                <td> Bank: <b>{{ $branch->bank_name ?? 'N/A' }}</b> <br>
+                                    Acct Name:<b>{{$branch->account_name}} </b><br>
+                                    Acct Num: <b>{{$branch->account_number}}</b>
+                                </td>
                                 <td>{{ $branch->created_at->format('d M, Y') }}</td>
                                 <td>
                                     <a href="{{ route('branches.edit', $branch->id) }}" class="text-primary me-2">

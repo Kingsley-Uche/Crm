@@ -21,6 +21,8 @@ use App\Models\LocationModel;
 use App\Models\BranchModel;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Cache;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use Illuminate\Support\Facades\DB;
 class PropertyController extends Controller
 {
     // Create (store)
@@ -489,33 +491,104 @@ public function ApartmentUpdate(Request $request,int $id)
     if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'create_property')))) {
         return redirect()->back()->with('error', 'Unauthorized access to import properties.');
     }
+    
     return view('layouts.property_manager.import');
 }
+// public function import(Request $request)
+// {
+//     $request->validate([
+//         'file' => 'required|mimes:xlsx,xls,csv|max:10240',
+//     ]);
 
-    public function import(Request $request)
+//     try {
+//         $file = $request->file('file');
+//         $filePath = $file->getPathname();
+
+//         // Get all sheet names
+//         $inputFileType =IOFactory::identify($filePath);
+//         $reader = IOFactory::createReader($inputFileType);
+//         $sheetNames = $reader->listWorksheetNames($filePath);
+//         dd($sheetNames);
+
+//         if (empty($sheetNames)) {
+//             throw new \Exception('No sheets found in the Excel file.');
+//         }
+
+//         $importedSheets = [];
+
+//         // Start ONE BIG TRANSACTION for all sheets
+//         DB::transaction(function () use ($file, $sheetNames, &$importedSheets) {
+            
+//             foreach ($sheetNames as $sheetName) {
+//                 $import = new MultiTableImport($sheetName);
+//                 $import->onlySheets($sheetName);
+
+//                 Excel::import($import, $file);
+
+//                 $importedSheets[] = $sheetName;
+//             }
+//         });
+
+//         Cache::forget('amenities_list');
+
+//         return response()->json([
+//             'message'         => 'All sheets imported successfully!',
+//             'status'          => 'success',
+//             'success'         => true,
+//             'sheets_imported' => $importedSheets,
+//             'total_sheets'    => count($sheetNames),
+//         ], 200);
+
+//     } catch (\Exception $e) {
+//         return response()->json([
+//             'message' => 'Failed to import properties.',
+//             'status'  => 'error',
+//             'error'   => $e->getMessage(),
+//         ], 500);
+//     }
+// }
+
+public function import(Request $request)
 {
-    // Validate the file type
     $request->validate([
-        'file' => 'required|mimes:xlsx,xls,csv|max:10240', // max size 10MB
+        'file' => 'required|mimes:xlsx,xls,csv|max:10240',
     ]);
 
     try {
-        // Perform the import
-     Excel::import(new MultiTableImport, $request->file('file'));
+        $file = $request->file('file');
+
+        // Instantiate your import class
+        $importInstance = new MultiTableImport();
+
+        // Perform the import inside a database transaction to ensure data integrity
+        DB::transaction(function () use ($importInstance, $file) {
+            Excel::import($importInstance, $file);
+        });
+
+        // Clear necessary caches upon a successful run
         Cache::forget('amenities_list');
-        // Return a JSON response indicating success
+
+        // Dynamically grab what sheets were processed if your class stores them
+        // (See the quick update for MultiTableImport below)
+        $importedSheets = method_exists($importInstance, 'getImportedSheets') 
+            ? $importInstance->getImportedSheets() 
+            : ['tenants', 'apartments', 'shelter types', 'branch', 'location'];
+
         return response()->json([
-            'message' => 'Properties imported successfully!',
-            'status' => 'success',
-            'success'=>true,
+            'message'         => 'All sheets imported successfully!',
+            'status'          => 'success',
+            'success'         => true,
+            'sheets_imported' => $importedSheets,
+            'total_sheets'    => count($importedSheets),
         ], 200);
+
     } catch (\Exception $e) {
-        // Return a JSON response indicating failure
         return response()->json([
             'message' => 'Failed to import properties.',
-            'status' => 'error',
-            'error' => $e->getMessage(),
+            'status'  => 'error',
+            'error'   => $e->getMessage(),
         ], 500);
     }
 }
 }
+

@@ -2,6 +2,23 @@
 $brand = session('brand_details') ?? cache('brand_details');
 $brand_color = $brand['brand_color'] ?? '#074784';
 ?>
+@php
+function shortenMenu($text, $limit = 17)
+{
+    if (strlen($text) <= $limit) {
+        return $text;
+    }
+
+    $short = substr($text, 0, $limit);
+    $lastSpace = strrpos($short, ' ');
+
+    if ($lastSpace !== false) {
+        $short = substr($short, 0, $lastSpace);
+    }
+
+    return $short . '...';
+}
+@endphp
 <div class="vertical-menu mt-2">
     <div data-simplebar class="h-100">
         <div id="sidebar-menu">
@@ -20,28 +37,7 @@ $brand_color = $brand['brand_color'] ?? '#074784';
 $user = (Session::get('user'));
 @endphp
 
-                @if(Session::has('permissions'))
-                    @if(Session::get('permissions')->contains('slug', 'create_estate_owner') || Session::get('permissions')->contains('slug', 'read_estate_owner'))
-                        <li>
-                            <a href="javascript:void(0);" class="waves-effect has-arrow"
-                               style="{{ request()->routeIs('estate_owners.*') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                <i class="fas fa-user-tie"></i>
-                                <span>Estate Owner Manager</span>
-                            </a>
-                            <ul class="sub-menu" aria-expanded="false">
-                                
-                                @if(Session::get('permissions')->contains('slug', 'read_estate_owner')|| $user->is_system_admin===1)
-                                    <li>
-                                        <a href="{{ route('estate_owners.index') }}"
-                                           style="{{ request()->routeIs('estate_owners.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="far fa-eye"></i> Estate Owners
-                                        </a>
-                                    </li>
-                                @endif
-                            </ul>
-                        </li>
-                    @endif
-                @endif
+
                  @if(Session::has('permissions'))
                     @if(Session::get('permissions')->contains('slug', 'create_managers') || Session::get('permissions')->contains('slug', 'read_managers')||$user->is_system_admin===1)
                         <li>
@@ -56,7 +52,7 @@ $user = (Session::get('user'));
                                     <li>
                                         <a href="{{ route('managers.index') }}"
                                            style="{{ request()->routeIs('managers.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="far fa-eye"></i> Managers
+                                            <i class="far fa-eye"></i> {{ shortenMenu('Property Managers')}}
                                         </a>
                                     </li>
                                 @endif
@@ -66,20 +62,20 @@ $user = (Session::get('user'));
                 @endif
 
                 @if(Session::has('permissions'))
-                    @if(Session::get('permissions')->contains('slug', 'create_tenant') || Session::get('permissions')->contains('slug', 'read_tenant')||$user->is_system_admin===1)
+                    @if(Session::get('permissions')->contains('slug', 'create_estate_owner') || Session::get('permissions')->contains('slug', 'read_estate_owner'))
                         <li>
                             <a href="javascript:void(0);" class="waves-effect has-arrow"
-                               style="{{ request()->routeIs('occupant.*') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                <i class="fas fa-users"></i>
-                                <span>Occupants Manager</span>
+                               style="{{ request()->routeIs('estate_owners.*') ? 'color: ' . $brand_color . ' !important;' : '' }}">
+                                <i class="fas fa-user-tie"></i>
+                                <span>{{ shortenMenu('Estate Owner/Landlord')}} </span>
                             </a>
                             <ul class="sub-menu" aria-expanded="false">
-                               
-                                @if(Session::get('permissions')->contains('slug', 'read_tenant')||$user->is_system_admin===1)
+                                
+                                @if(Session::get('permissions')->contains('slug', 'read_estate_owner')|| $user->is_system_admin===1)
                                     <li>
-                                        <a href="{{ route('occupant.index') }}"
-                                           style="{{ request()->routeIs('occupant.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="far fa-eye"></i> Occupants
+                                        <a href="{{ route('estate_owners.index') }}"
+                                           style="{{ request()->routeIs('estate_owners.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
+                                            <i class="far fa-eye"></i> {{ shortenMenu('Estate Owners')}}
                                         </a>
                                     </li>
                                 @endif
@@ -87,8 +83,9 @@ $user = (Session::get('user'));
                         </li>
                     @endif
                 @endif
-
-                @if(Session::has('permissions'))
+                
+                
+                                @if(Session::has('permissions'))
                     @if(
                         Session::get('permissions')->contains('slug', 'create_locations') ||
                         Session::get('permissions')->contains('slug', 'read_locations') ||
@@ -100,7 +97,7 @@ $user = (Session::get('user'));
                             <a href="javascript:void(0);" class="has-arrow waves-effect"
                                style="{{ request()->routeIs('property.*') ? 'color: ' . $brand_color . ' !important;' : '' }}">
                                 <i class="fas fa-building"></i>
-                                <span>Apartment Manager</span>
+                                <span>{{ shortenMenu('Property Management')}}</span>
                             </a>
                             <ul class="sub-menu" aria-expanded="true">
 
@@ -108,7 +105,7 @@ $user = (Session::get('user'));
                                     <li>
                                         <a href="{{ route('branches.index') }}"
                                            style="{{ request()->routeIs('branches.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="fa fa-eye"></i> Branches
+                                            <i class="fa fa-eye"></i> {{ shortenMenu('Branches')}}
                                         </a>
                                     </li>
                                 @endif
@@ -119,7 +116,7 @@ $user = (Session::get('user'));
                                         
                                         <a href="javascript:void(0);" class="has-arrow"
                                            style="{{ request()->routeIs('locations.create') || request()->routeIs('locations.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="fa fa-map-marker" aria-hidden="true"></i> Locations
+                                            <i class="fa fa-map-marker" aria-hidden="true"></i> {{ shortenMenu('Locations')}}
                                         </a>
                                         <ul class="sub-menu" aria-expanded="true">
                                            
@@ -127,7 +124,7 @@ $user = (Session::get('user'));
                                                 <li>
                                                     <a href="{{ route('locations.index') }}"
                                                        style="{{ request()->routeIs('locations.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                                        <i class="far fa-eye"></i> Property Locations
+                                                        <i class="far fa-eye"></i> {{ shortenMenu('Property Locations')}}
                                                     </a>
                                                 </li>
                                             @endif
@@ -138,14 +135,14 @@ $user = (Session::get('user'));
                                     <li>
                                         <a href="javascript:void(0);" class="has-arrow"
                                            style="{{ request()->routeIs('property.create') || request()->routeIs('property.index')||$user->is_system_admin===1 ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="fas fa-house-user"></i> Apartments
+                                            <i class="fas fa-house-user"></i> {{ shortenMenu('Apartments')}}
                                         </a>
                                         <ul class="sub-menu" aria-expanded="true">
                                             @if(Session::get('permissions')->contains('slug', 'read_property')||$user->is_system_admin===1)
                                                 <li>
                                                     <a href="{{ route('property.index') }}"
                                                        style="{{ request()->routeIs('property.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                                        <i class="far fa-eye"></i> View Registered
+                                                        <i class="far fa-eye"></i> {{ shortenMenu('View Registered')}}
                                                     </a>
                                                 </li>
                                             @endif
@@ -153,13 +150,13 @@ $user = (Session::get('user'));
                                                 <li>
                                                     <a href="{{ route('property.create') }}"
                                                        style="{{ request()->routeIs('property.create') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                                        <i class="far fa-plus-square"></i> Register Apartment
+                                                        <i class="far fa-plus-square"></i> {{ shortenMenu('Register Apartment')}}
                                                     </a>
                                                 </li>
                                                 <li>
                                                     <a href="{{ route('property.import') }}"
                                                        style="{{ request()->routeIs('property.import') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                                        <i class="fa fa-file-excel"></i> Import Properties
+                                                        <i class="fa fa-file-excel"></i> {{ shortenMenu('Import Properties')}}
                                                     </a>
                                                 </li>
                                             @endif
@@ -170,19 +167,19 @@ $user = (Session::get('user'));
                                     <li>
                                         <a href="javascript:void(0);" class="has-arrow"
                                            style="{{ request()->routeIs('accommodation.index') || request()->routeIs('accommodation.booked') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="fas fa-bed"></i> Accommodations
+                                            <i class="fas fa-bed"></i> {{ shortenMenu('Accommodations')}}
                                         </a>
                                         <ul class="sub-menu" aria-expanded="true">
                                             <li>
                                                 <a href="{{ route('accommodation.index') }}"
                                                    style="{{ request()->routeIs('accommodation.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                                    <i class="far fa-eye"></i> View all
+                                                    <i class="far fa-eye"></i> {{ shortenMenu('View all')}}
                                                 </a>
                                             </li>
                                             <li>
                                                 <a href="{{ route('accommodation.booked') }}"
                                                    style="{{ request()->routeIs('accommodation.booked') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                                    <i class="fa fa-check-square"></i> View Booked
+                                                    <i class="fa fa-check-square"></i> {{ shortenMenu('View Booked')}}
                                                 </a>
                                             </li>
                                         </ul>
@@ -193,51 +190,22 @@ $user = (Session::get('user'));
                     @endif
                 @endif
 
-               
 
                 @if(Session::has('permissions'))
-                    @if(Session::get('permissions')->contains('slug', 'read_rent') || Session::get('permissions')->contains('slug', 'create_rent')||$user->is_system_admin===1)
+                    @if(Session::get('permissions')->contains('slug', 'create_tenant') || Session::get('permissions')->contains('slug', 'read_tenant')||$user->is_system_admin===1)
                         <li>
-                            <a href="javascript:void(0)" class="waves-effect has-arrow">
-                                <i class="fas fa-file-invoice-dollar"></i>
-                                <span>Rent Manager</span>
+                            <a href="javascript:void(0);" class="waves-effect has-arrow"
+                               style="{{ request()->routeIs('occupant.*') ? 'color: ' . $brand_color . ' !important;' : '' }}">
+                                <i class="fas fa-users"></i>
+                                <span>{{ shortenMenu('Occupancy Management')}}</span>
                             </a>
-                            <ul class="sub-menu" aria-expanded="true">
-                                @if(Session::get('permissions')->contains('slug', 'read_rent')||$user->is_system_admin===1)
+                            <ul class="sub-menu" aria-expanded="false">
+                               
+                                @if(Session::get('permissions')->contains('slug', 'read_tenant')||$user->is_system_admin===1)
                                     <li>
-                                        <a href="{{ route('apartments.view') }}"
-                                           style="{{ request()->routeIs('apartments.view') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="fa fa-eye"></i> View Apartments
-                                        </a>
-                                    </li>
-                                @endif
-                                @if(Session::get('permissions')->contains('slug', 'create_rent')||$user->is_system_admin===1)
-                                    <li>
-                                        <a href="{{ route('rent.account') }}"
-                                           style="{{ request()->routeIs('rent.account') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="fa fa-plus"></i> Create Rent Account
-                                        </a>
-                                    </li>
-                                @endif
-                                @if(Session::get('permissions')->contains('slug', 'read_rent')||$user->is_system_admin===1)
-                                    <li>
-                                        <a href="{{ route('rent.active') }}"
-                                           style="{{ request()->routeIs('rent.active') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="fa fa-hotel"></i> Active Rent Accounts
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="{{ route('rent.inactive') }}"
-                                           style="{{ request()->routeIs('rent.inactive') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="fas fa-times-circle"></i> Deactivated Rent Accounts
-                                        </a>
-                                    </li>
-                                @endif
-                                @if(Session::get('permissions')->contains('slug', 'create_rent')||$user->is_system_admin===1)
-                                    <li>
-                                        <a href="{{ route('rent.cycle') }}"
-                                           style="{{ request()->routeIs('rent.cycle') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="fa fa-clock"></i> Renew Rent
+                                        <a href="{{ route('occupant.index') }}"
+                                           style="{{ request()->routeIs('occupant.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
+                                            <i class="far fa-eye"></i> {{ shortenMenu('Occupants')}}
                                         </a>
                                     </li>
                                 @endif
@@ -246,19 +214,97 @@ $user = (Session::get('user'));
                     @endif
                 @endif
 
+
+
+               
+
+                @if(Session::has('permissions'))
+                    @if(Session::get('permissions')->contains('slug', 'read_rent') || Session::get('permissions')->contains('slug', 'create_rent')||$user->is_system_admin===1)
+                        <li>
+                            <a href="javascript:void(0)" class="waves-effect has-arrow">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                                <span>{{ shortenMenu('Rental Management')}}</span>
+                            </a>
+                            <ul class="sub-menu" aria-expanded="true">
+                                @if(Session::get('permissions')->contains('slug', 'read_rent')||$user->is_system_admin===1)
+                                    <li>
+                                        <a href="{{ route('apartments.view') }}"
+                                           style="{{ request()->routeIs('apartments.view') ? 'color: ' . $brand_color . ' !important;' : '' }}">
+                                            <i class="fa fa-eye"></i> {{ shortenMenu('View Apartments')}}
+                                        </a>
+                                    </li>
+                                @endif
+                                @if(Session::get('permissions')->contains('slug', 'create_rent')||$user->is_system_admin===1)
+                                    <li>
+                                        <a href="{{ route('rent.account') }}"
+                                           style="{{ request()->routeIs('rent.account') ? 'color: ' . $brand_color . ' !important;' : '' }}">
+                                            <i class="fa fa-plus"></i> {{ shortenMenu('Create Rent Account')}}
+                                        </a>
+                                    </li>
+                                @endif
+                                @if(Session::get('permissions')->contains('slug', 'read_rent')||$user->is_system_admin===1)
+                                    <li>
+                                        <a href="{{ route('rent.active') }}"
+                                           style="{{ request()->routeIs('rent.active') ? 'color: ' . $brand_color . ' !important;' : '' }}">
+                                            <i class="fa fa-hotel"></i> {{ shortenMenu('Active Rent Accounts')}}
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('rent.inactive') }}"
+                                           style="{{ request()->routeIs('rent.inactive') ? 'color: ' . $brand_color . ' !important;' : '' }}">
+                                            <i class="fas fa-times-circle"></i> {{ shortenMenu('Deactivated Rent Accounts')}}
+                                        </a>
+                                    </li>
+                                @endif
+                                @if(Session::get('permissions')->contains('slug', 'create_rent')||$user->is_system_admin===1)
+                                    <li>
+                                        <a href="{{ route('rent.cycle') }}"
+                                           style="{{ request()->routeIs('rent.cycle') ? 'color: ' . $brand_color . ' !important;' : '' }}">
+                                            <i class="fa fa-clock"></i> {{ shortenMenu('Renew Rent')}}
+                                        </a>
+                                    </li>
+                                @endif
+                            </ul>
+                        </li>
+                    @endif
+                @endif
+
+                @if($user->is_site_admin == 1)
+<li>
+    <a href="javascript:void(0);" class="waves-effect has-arrow"
+       style="{{ request()->routeIs('brand.*')? 'color: ' . $brand_color . ' !important;' : '' }}">
+        <i class="fas fa-user-shield"></i>
+        <span>Brand Management</span>
+    </a>
+
+    <ul class="sub-menu" aria-expanded="false">
+
+        {{-- Brand Details --}}
+        <li>
+            <a href="{{ route('brand.index') }}"
+               style="{{ request()->routeIs('brand.*') ? 'color: ' . $brand_color . ' !important;' : '' }}">
+                <i class="fas fa-user-friends"></i>Brand Details
+            </a>
+        </li>
+
+
+    </ul>
+</li>
+@endif
+
                 @if(Session::has('permissions'))
                     @if(Session::get('permissions')->contains('slug', 'create_voids') || Session::get('permissions')->contains('slug', 'read_voids')||$user->is_system_admin===1)
                         <li>
                             <a href="javascript:void(0);" class="waves-effect has-arrow">
                                 <i class="fas fa-ban"></i>
-                                <span>Voids Manager</span>
+                                <span>{{ shortenMenu('Voids Manager')}}</span>
                             </a>
                             <ul class="sub-menu" aria-expanded="true">
                                 @if(Session::get('permissions')->contains('slug', 'read_voids'))
                                     <li>
                                         <a href="{{ route('void.index') }}"
                                            style="{{ request()->routeIs('void.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="fa fa-eye"></i> View Voids
+                                            <i class="fa fa-eye"></i> {{ shortenMenu('View Voids')}}
                                         </a>
                                     </li>
                                 @endif
@@ -267,7 +313,7 @@ $user = (Session::get('user'));
                                     <li>
                                         <a href="{{ route('void.import.load') }}"
                                            style="{{ request()->routeIs('void.import.load') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="fa fa-file-excel"></i> Import Voids
+                                            <i class="fa fa-file-excel"></i> {{ shortenMenu('Import Voids')}}
                                         </a>
                                     </li>
                                 @endif
@@ -288,7 +334,7 @@ $user = (Session::get('user'));
                                     <li>
                                         <a href="{{ route('maintenance.index') }}"
                                            style="{{ request()->routeIs('maintenance.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="fa fa-eye"></i> Maintenance Requests
+                                            <i class="fa fa-eye"></i> {{ shortenMenu('Maintenance Requests')}}
                                         </a>
                                     </li>
                                 @endif
@@ -297,7 +343,7 @@ $user = (Session::get('user'));
                                     <li>
                                         <a href="{{ route('maintenance.import') }}"
                                            style="{{ request()->routeIs('maintenance.import') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                            <i class="fa fa-file-excel"></i> Import Maintenance
+                                            <i class="fa fa-file-excel"></i> {{ shortenMenu('Import Maintenance')}}
                                         </a>
                                     </li>
                                 @endif
@@ -305,21 +351,44 @@ $user = (Session::get('user'));
                         </li>
                     @endif
                 @endif
+                                
+                  {{-- Invoices --}}
+                @if(Session::has('permissions'))
+    @if(Session::get('permissions')->contains('slug', 'create_invoice') || Session::get('permissions')->contains('slug', 'read_invoice')||$user->is_system_admin===1)
+        <li>
+            <a href="javascript:void(0);" class="waves-effect has-arrow">
+                <i class="fas fa-bullhorn"></i>
+                <span>{{ shortenMenu('Invoice Manager')}}</span>
+            </a>
+            <ul class="sub-menu" aria-expanded="true">
+                @if(Session::get('permissions')->contains('slug', 'read_invoice')||$user->is_system_admin===1)
+                    <li>
+                        <a href="{{ route('invoice.index') }}"
+                           style="{{ request()->routeIs('invoices.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
+                            <i class="fa fa-eye"></i>{{ shortenMenu('Invoices')}}
+                        </a>
+                    </li>
+                @endif
                 
+            </ul>
+        </li>
+    @endif
+@endif
+
                   {{-- Complaints --}}
                 @if(Session::has('permissions'))
     @if(Session::get('permissions')->contains('slug', 'create_complaints') || Session::get('permissions')->contains('slug', 'read_complaints')||$user->is_system_admin===1)
         <li>
             <a href="javascript:void(0);" class="waves-effect has-arrow">
                 <i class="fas fa-bullhorn"></i>
-                <span>Complaints Manager</span>
+                <span>{{ shortenMenu('Complaints Manager')}}</span>
             </a>
             <ul class="sub-menu" aria-expanded="true">
                 @if(Session::get('permissions')->contains('slug', 'read_complaints')||$user->is_system_admin===1)
                     <li>
                         <a href="{{ route('complaints.index') }}"
                            style="{{ request()->routeIs('complaints.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                            <i class="fa fa-eye"></i>Complaints
+                            <i class="fa fa-eye"></i>{{ shortenMenu('Complaints')}}
                         </a>
                     </li>
                 @endif
@@ -334,13 +403,13 @@ $user = (Session::get('user'));
         <li>
             <a href="javascript:void(0);" class="waves-effect has-arrow">
                 <i class="fas fa-parking"></i>
-                <span>Car Park</span>
+                <span>{{ shortenMenu('Car Park')}}</span>
             </a>
             <ul class="sub-menu" aria-expanded="false">
                 {{-- Park Categories --}}
                 <li>
                     <a href="javascript:void(0);" class="has-arrow">
-                        <i class="fas fa-list-alt me-1"></i> Park Categories
+                        <i class="fas fa-list-alt me-1"></i> {{ shortenMenu('Park Categories')}}
                     </a>
                     <ul class="sub-menu">
                        
@@ -348,7 +417,7 @@ $user = (Session::get('user'));
                             <li>
                                 <a href="{{ route('park.categories.index') }}"
                                    style="{{ request()->routeIs('park.categories.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                    <i class="fas fa-eye me-1"></i> Car Park
+                                    <i class="fas fa-eye me-1"></i> {{ shortenMenu('Car Park')}}
                                 </a>
                             </li>
                         @endif
@@ -357,7 +426,7 @@ $user = (Session::get('user'));
                 {{-- Park Locations --}}
                 <li>
                     <a href="javascript:void(0);" class="has-arrow">
-                        <i class="fas fa-map-marker-alt me-1"></i> Park Locations
+                        <i class="fas fa-map-marker-alt me-1"></i> {{ shortenMenu('Park Locations')}}
                     </a>
                     <ul class="sub-menu">
                        
@@ -365,7 +434,7 @@ $user = (Session::get('user'));
                             <li>
                                 <a href="{{ route('park.models.index') }}"
                                    style="{{ request()->routeIs('park.models.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                    <i class="fas fa-eye me-1"></i>Park Locations
+                                    <i class="fas fa-eye me-1"></i>{{ shortenMenu('Park Locations')}}
                                 </a>
                             </li>
                         @endif
@@ -374,7 +443,7 @@ $user = (Session::get('user'));
                 {{-- Park Taxes --}}
                 <li>
                     <a href="javascript:void(0);" class="has-arrow">
-                        <i class="fas fa-file-invoice-dollar me-1"></i> Park Taxes
+                        <i class="fas fa-file-invoice-dollar me-1"></i> {{ shortenMenu('Park Taxes')}}
                     </a>
                     <ul class="sub-menu">
                         
@@ -382,7 +451,7 @@ $user = (Session::get('user'));
                             <li>
                                 <a href="{{ route('park.taxes.index') }}"
                                    style="{{ request()->routeIs('park.taxes.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                    <i class="fas fa-eye me-1"></i> Park Taxes
+                                    <i class="fas fa-eye me-1"></i> {{ shortenMenu('Park Taxes')}}
                                 </a>
                             </li>
                         @endif
@@ -391,7 +460,7 @@ $user = (Session::get('user'));
                 {{-- Park Permits --}}
                 <li>
                     <a href="javascript:void(0);" class="has-arrow">
-                        <i class="fas fa-id-badge me-1"></i> Park Permits
+                        <i class="fas fa-id-badge me-1"></i> {{ shortenMenu('Park Permits')}}
                     </a>
                     <ul class="sub-menu">
                        
@@ -399,7 +468,7 @@ $user = (Session::get('user'));
                             <li>
                                 <a href="{{ route('park.permits.index') }}"
                                    style="{{ request()->routeIs('park.permits.index') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                                    <i class="fas fa-eye me-1"></i> Park Permits
+                                    <i class="fas fa-eye me-1"></i> {{ shortenMenu('Park Permits')}}
                                 </a>
                             </li>
                         @endif
@@ -407,7 +476,7 @@ $user = (Session::get('user'));
                 </li>
                          <li>
                     <a href="javascript:void(0);" class="has-arrow">
-                        <i class="fas fa-car me-1"></i> Parking
+                        <i class="fas fa-car me-1"></i> {{ shortenMenu('Parking')}}
                     </a>
                     <ul class="sub-menu">
                         @if(Session::get('permissions')->contains('slug', 'create_park')||$user->is_system_admin===1)
@@ -505,13 +574,13 @@ $user = (Session::get('user'));
                 <li>
                     <a href="{{ route('pest_control.report') }}"
                        style="{{ request()->routeIs('pest_control.report') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                        <i class="fa fa-bug"></i> Pest Control Report
+                        <i class="fa fa-bug"></i> {{ shortenMenu('Pest Control Report')}}
                     </a>
                 </li>
                 <li>
                     <a href="{{ route('maintenance.report') }}"
                        style="{{ request()->routeIs('maintenance.report') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                        <i class="fa fa-tools"></i> Maintenance Report
+                        <i class="fa fa-tools"></i> {{ shortenMenu('Maintenance Report')}}
                     </a>
                 </li>
                 <li>
@@ -523,7 +592,7 @@ $user = (Session::get('user'));
                 <li>
                     <a href="{{ route('complaints.report') }}"
                        style="{{ request()->routeIs('complaints.report') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                       <i class="fas fa-bullhorn"></i>Complaints Report
+                       <i class="fas fa-bullhorn"></i>{{ shortenMenu('Complaints Report')}}
                     </a>
                 </li>
 
@@ -590,28 +659,7 @@ $user = (Session::get('user'));
 </li>
 @endif
 
-@if($user->is_site_admin == 1)
-<li>
-    <a href="javascript:void(0);" class="waves-effect has-arrow"
-       style="{{ request()->routeIs('brand.*')? 'color: ' . $brand_color . ' !important;' : '' }}">
-        <i class="fas fa-user-shield"></i>
-        <span>Brand Management</span>
-    </a>
 
-    <ul class="sub-menu" aria-expanded="false">
-
-        {{-- Brand Details --}}
-        <li>
-            <a href="{{ route('brand.index') }}"
-               style="{{ request()->routeIs('brand.*') ? 'color: ' . $brand_color . ' !important;' : '' }}">
-                <i class="fas fa-user-friends"></i>Brand Details
-            </a>
-        </li>
-
-
-    </ul>
-</li>
-@endif
 
 
             </ul>

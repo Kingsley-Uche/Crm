@@ -65,8 +65,7 @@
 
                                         <form action="{{ route('locations.destroy', $location->id) }}"
                                               method="POST"
-                                              class="d-inline"
-                                              onsubmit="return confirm('Are you sure you want to delete this location?');">
+                                              class="d-inline delete-btn">
                                             @csrf
                                             @method('DELETE')
 

@@ -14,6 +14,7 @@ use App\Models\ApartmentIdentity;
 use App\Models\TenantModel;
 use App\Models\PaymentListingModel;
 use App\Models\BrandModel;
+use Illuminate\Support\Facades\Session;
 
 class InvoiceController extends Controller
 {
@@ -22,6 +23,11 @@ class InvoiceController extends Controller
      */
     public function index()
     {
+         $user = Session::get('user');
+        $permissions = Session::get('permissions');
+        if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'read_invoice')))) {
+            return redirect()->back()->with('error', 'Unauthorized access to invoices.');
+        }
         $invoices = InvoiceModel::with([
             'tenant',
             'apartment',
@@ -39,6 +45,12 @@ class InvoiceController extends Controller
      */
     public function create()
     {
+        
+         $user = Session::get('user');
+        $permissions = Session::get('permissions');
+        if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'create_invoice')))) {
+            return redirect()->back()->with('error', 'Unauthorized access to invoices.');
+        }
         $branches = BranchModel::orderBy('name')->get();
         $tenants= TenantModel::select('id','full_name','occupant_email', 'mobile_number')->get();
         return view('layouts.invoice.create', compact('branches','tenants'));
@@ -49,6 +61,12 @@ class InvoiceController extends Controller
      */
     public function store(Request $request)
     {
+        
+         $user = Session::get('user');
+        $permissions = Session::get('permissions');
+        if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'create_invoice')))) {
+            return redirect()->back()->with('error', 'Unauthorized access to invoices.');
+        }
 
     ///should come after saving to payment listing
        $request->validate([
@@ -128,7 +146,12 @@ try {
      */
     public function show($id)
     {
-      
+       $user = Session::get('user');
+        $permissions = Session::get('permissions');
+        if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'read_invoice')))) {
+            return redirect()->back()->with('error', 'Unauthorized access to invoices.');
+        }
+
         $brand_data =BrandModel::select('name', 'brand_color',
         'website_url','contact_email','contact_phone','address', 'logo_url')->first(); 
         
@@ -149,6 +172,12 @@ try {
      */
     public function edit(int $id)
 {
+     $user = Session::get('user');
+        $permissions = Session::get('permissions');
+        if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'update_invoice')))) {
+            return redirect()->back()->with('error', 'Unauthorized access to invoices.');
+        }
+
     $invoice = InvoiceModel::with([
         'tenant',
         'apartment',
@@ -164,6 +193,12 @@ try {
      */
 public function update(Request $request, $id)
 {
+     $user = Session::get('user');
+        $permissions = Session::get('permissions');
+        if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'update_invoice')))) {
+            return redirect()->back()->with('error', 'Unauthorized access to invoices.');
+        }
+
     $invoice = InvoiceModel::with('paymentListings')->findOrFail($id);
 
     $request->validate([
@@ -276,6 +311,12 @@ public function update(Request $request, $id)
      */
     public function destroy($id)
     {
+         $user = Session::get('user');
+        $permissions = Session::get('permissions');
+        if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'delete_invoice')))) {
+            return redirect()->back()->with('error', 'Unauthorized access to invoices.');
+        }
+
         $invoice = InvoiceModel::findOrFail($id);
 
         $invoice->delete();

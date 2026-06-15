@@ -28,7 +28,9 @@
                 <p class="card-title-desc">This supports only spreadsheet files</p>
 
                 <div>
-                    <form action="{{ route('property.import.upload') }}" class="dropzone" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('property.import.upload') }}" 
+                    
+                    method="POST" enctype="multipart/form-data" class="dropzone">
                         @csrf
                         <div class="fallback">
                             <input name="file" type="file" multiple="multiple">
@@ -40,6 +42,7 @@
                             <h4>Drop files here or click to upload.</h4>
                             
                         </div>
+                        
                       
                     </form>
                 </div>
