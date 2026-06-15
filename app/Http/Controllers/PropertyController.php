@@ -494,59 +494,7 @@ public function ApartmentUpdate(Request $request,int $id)
     
     return view('layouts.property_manager.import');
 }
-// public function import(Request $request)
-// {
-//     $request->validate([
-//         'file' => 'required|mimes:xlsx,xls,csv|max:10240',
-//     ]);
 
-//     try {
-//         $file = $request->file('file');
-//         $filePath = $file->getPathname();
-
-//         // Get all sheet names
-//         $inputFileType =IOFactory::identify($filePath);
-//         $reader = IOFactory::createReader($inputFileType);
-//         $sheetNames = $reader->listWorksheetNames($filePath);
-//         dd($sheetNames);
-
-//         if (empty($sheetNames)) {
-//             throw new \Exception('No sheets found in the Excel file.');
-//         }
-
-//         $importedSheets = [];
-
-//         // Start ONE BIG TRANSACTION for all sheets
-//         DB::transaction(function () use ($file, $sheetNames, &$importedSheets) {
-            
-//             foreach ($sheetNames as $sheetName) {
-//                 $import = new MultiTableImport($sheetName);
-//                 $import->onlySheets($sheetName);
-
-//                 Excel::import($import, $file);
-
-//                 $importedSheets[] = $sheetName;
-//             }
-//         });
-
-//         Cache::forget('amenities_list');
-
-//         return response()->json([
-//             'message'         => 'All sheets imported successfully!',
-//             'status'          => 'success',
-//             'success'         => true,
-//             'sheets_imported' => $importedSheets,
-//             'total_sheets'    => count($sheetNames),
-//         ], 200);
-
-//     } catch (\Exception $e) {
-//         return response()->json([
-//             'message' => 'Failed to import properties.',
-//             'status'  => 'error',
-//             'error'   => $e->getMessage(),
-//         ], 500);
-//     }
-// }
 
 public function import(Request $request)
 {
