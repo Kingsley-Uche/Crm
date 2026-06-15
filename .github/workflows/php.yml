@@ -58,7 +58,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           source: "public/build/"
-          target: "/home2/netporta/repositories/estate_manager/public"
+          target: ${{secrets.DEPLOY_PATH }}
 
       # 10. Deploy backend via SSH
       - name: Deploy Laravel backend
