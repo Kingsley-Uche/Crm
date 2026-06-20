@@ -248,8 +248,9 @@
         $('#apartment_id').on('change', function() {
           const selectedId = parseInt(this.value);
           const apt = apartments.find(a => a.id === selectedId);
+          console.log(apt);
           $('#unit_number').val(apt?.unit_number || '');
         });
-      });
+    
     </script>
 @endsection

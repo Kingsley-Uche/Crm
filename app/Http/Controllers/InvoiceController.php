@@ -62,6 +62,7 @@ class InvoiceController extends Controller
     public function store(Request $request)
     {
         
+        
          $user = Session::get('user');
         $permissions = Session::get('permissions');
         if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'create_invoice')))) {
