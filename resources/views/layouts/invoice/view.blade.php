@@ -313,7 +313,7 @@
                                                     <tr>
                                                         <td class="text-center text-muted">{{ $index + 1 }}</td>
                                                         <td>
-                                                            <span class="fw-semibold text-dark">{{ $item->name }}</span>
+                                                            <span class="fw-semibold text-dark">{!! $item->name !!}</span>
                                                         </td>
                                                         <td class="text-center">
                                                             {{ number_format($item->unit_charge, 2) }}

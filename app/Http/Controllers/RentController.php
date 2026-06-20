@@ -86,8 +86,8 @@ $apartment= ApartmentIdentity::where('id',$validated['apartment_id'])
 ->select('location_models_id', 'branch_id', 'property_manager_id', 'id as apartment_id')->first();
 
 
-    $validated['duration_months'] = Carbon::parse($validated['start_date'])
-        ->floatDiffInMonths(Carbon::parse($validated['end_date']));
+    $validated['duration_months'] = floor(Carbon::parse($validated['start_date'])
+        ->floatDiffInMonths(Carbon::parse($validated['end_date'])));
 
     $validated['created_by'] = Auth::id();
     
@@ -98,31 +98,48 @@ $apartment= ApartmentIdentity::where('id',$validated['apartment_id'])
 
     $invoice = new InvoiceController();
     $tenant = Tenant::where('id', $validated['tenant_id'])->select('id', 'full_name', 'mobile_number', 'occupant_email')->first();
-    $invoice->store($request);
+
     try {
-        DB::transaction(function () use (&$validated,$apartment,$tenant) {
+         $request->merge([
+    'branch_id'   =>$apartment->branch_id,
+    'location_id' =>$apartment->location_models_id,
+    'paid_amount' => $validated['payment_made'],
+    'description' => 'Invoice for Rent Payment from ' .
+                     $validated['start_date'] . ' to ' .
+                     $validated['end_date'] . ' for ' .
+                     $tenant['full_name'] .
+                     '<br>Number of Months: ' .
+                     $validated['duration_months'],//round down
+    'amount'      => $validated['rent_fee'],
+    'due_date'    => now(),
+
+    'items' => [
+        [
+            'name'        => 'Rent Renewal Invoice for ' .
+                             $validated['start_date'] . ' to ' .
+                             $validated['end_date'] . ' for ' .
+                             $tenant->full_name.
+                              '<br>Number of Months: ' .
+                     $validated['duration_months'],//round down
+            'qty'         => 1,
+            'unit_charge' => $validated['rent_fee'],
+            'amount'      => $validated['rent_fee'],
+        ]
+    ]
+]);
+
+
+        DB::transaction(function () use (&$validated,$request,$invoice) {
             $rentAccount = RentAccount::create($validated);
             $validated['rent_account_id'] = $rentAccount->id;
 
-            $booking = $this->createBooking($validated, $validated['rent_fee']);
+            $this->createBooking($validated, $validated['rent_fee']);
           
             
-            $request->merge([
-        'branch_id'=>$apartment['branch_id'],
-        'location_id'=>$apartment['loacation_models_i'],
-        'paid_amount'=>$validated['payment_made'],
-        'description'=>'Invoice for Rent Payment for '.$validated['start_date']. 'to '.$validated['end_date'].'for '.$validated['full_name'],
-        'amount'=>$validated['rent_fee'],
-            'due_date'=>now(),
-        'items'=>[
-            'name'=>'Rent Renewal Invoice for '.$validated['start_date']. 'to '.$validated['end_date'].'for '.$validated['full_name'],
-            'qty'=>1,
-            'unit_charge'=>$validated['rent_fee'],
-            'amount'=>$validated['amount']
-        ]
-    ]);
+          
 
             RentCycle::create($validated);
+                $invoice->store($request);
             //generate invoice
         });
 
