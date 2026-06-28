@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 
 class ManagerController extends Controller
@@ -57,8 +58,8 @@ try {
     $hashedPassword = Hash::make($plainPassword);
 
     $user = User::create([
-        'fname'      => $validated['fName'],
-        'lname'      => $validated['lName'],
+        'fName'      => $validated['fName'],
+        'lName'      => $validated['lName'],
         'email'      => $validated['email'],
         'user_type'  => 2,
         'is_system_admin'=>1,
