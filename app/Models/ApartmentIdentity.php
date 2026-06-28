@@ -106,6 +106,13 @@ public function bookStatus(){
     {
         return $this->hasMany(AmenitySize::class, 'apartment_id', 'id');
     }
+    // ApartmentIdentity.php
+public function scopeVisibleTo($query, $user)
+{
+    return $query->when(!empty($user->property_manager_id), function ($q) use ($user) {
+        $q->where('property_manager_id', $user->property_manager_id);
+    });
+}
     
 
 }

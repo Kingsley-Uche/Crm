@@ -173,6 +173,7 @@ try {
      */
     public function edit(int $id)
 {
+    
      $user = Session::get('user');
         $permissions = Session::get('permissions');
         if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'update_invoice')))) {
@@ -257,6 +258,7 @@ public function update(Request $request, $id)
         /**
          * Update invoice
          */
+       
         $invoice->update([
             'tenant_id'    => $request->tenant_id,
             'apartment_id' => $request->apartment_id,
@@ -311,21 +313,53 @@ public function update(Request $request, $id)
      * Delete invoice.
      */
     public function destroy($id)
-    {
-         $user = Session::get('user');
-        $permissions = Session::get('permissions');
-        if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'delete_invoice')))) {
-            return redirect()->back()->with('error', 'Unauthorized access to invoices.');
+{
+    $user = Session::get('user');
+    $permissions = Session::get('permissions');
+
+    if (
+        !$user ||
+        (
+            !$user->system_admin &&
+            (
+                !$permissions ||
+                !$permissions->contains('slug', 'delete_invoice')
+            )
+        )
+    ) {
+        return redirect()->back()->with('error', 'Unauthorized access to invoices.');
+    }
+
+    $invoice = InvoiceModel::findOrFail($id);
+
+    // Restrict property managers
+    if (!empty($user->property_manager_id)) {
+
+        $apartment = ApartmentIdentity::visibleTo($user)
+            ->where('id', $invoice->apartment_id)
+            ->first();
+
+        if (!$apartment) {
+            return redirect()->back()->with(
+                'error',
+                'You are not authorized to delete this invoice.'
+            );
         }
 
-        $invoice = InvoiceModel::findOrFail($id);
-
-        $invoice->delete();
-
-        return redirect()
-            ->route('invoice.index')
-            ->with('success', 'Invoice deleted successfully.');
+        if (strtolower($invoice->status) !== 'pending') {
+            return redirect()->back()->with(
+                'error',
+                'Only pending invoices can be deleted.'
+            );
+        }
     }
+
+    $invoice->delete();
+
+    return redirect()
+        ->route('invoice.index')
+        ->with('success', 'Invoice deleted successfully.');
+}
 
     /**
      * AJAX: Get locations by branch.
@@ -345,20 +379,25 @@ public function update(Request $request, $id)
     /**
      * AJAX: Get apartments by location.
      */
-    public function getApartments($locationId)
-    {
-        $apartments = ApartmentIdentity::where('location_models_id', $locationId)
-            ->orderBy('unique_code')
-            ->get([
-                'id',
-                'property_ref',
-                'unique_code',
-                'address'
-            ]);
+   
+       public function getApartments($locationId)
+{
+    $user = Session::get('user');
 
-        return response()->json($apartments);
-    }
+    $apartments = ApartmentIdentity::visibleTo($user)
+        ->where('location_models_id', $locationId)
+        ->orderBy('unique_code')
+        ->get([
+            'id',
+            'property_ref',
+            'unique_code',
+            'address'
+        ]);
 
+    return response()->json($apartments);
+}
+
+       
     /**
      * Generate invoice reference.
      */

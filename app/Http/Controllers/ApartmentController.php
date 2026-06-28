@@ -296,13 +296,13 @@ public function index($block_id, $shelter_id)
         return redirect()->back()->with('error', 'Unauthorized access to apartments.');
     }
 
+    
     // Validate inputs
     if (!is_numeric($block_id) || !is_numeric($shelter_id)) {
         return redirect()->back()->with('error', 'Invalid block or shelter ID provided.');
     }
      Cache::forget('tenancy_types');
       Cache::forget('payment_time_list');
-       Cache::forget('tenancy_types');
 
     // Cache static data
     $amenities = Cache::remember('amenities_list', 3600, fn () => Amenities::all());
@@ -320,12 +320,16 @@ public function index($block_id, $shelter_id)
         return redirect()->back()->with('error', 'No block shelter found for the specified block and shelter.');
     }
     
+   $query = ApartmentIdentity::where('shelter_id', $shelter_id)
+    ->where('block_models_id', $block_id);
 
-    // Fetch apartments with pagination
-    $apartments = ApartmentIdentity::where('shelter_id', $shelter_id)
-        ->where('block_models_id', $block_id)
-        ->orderBy('id')
-        ->paginate(6); // Paginate with 6 items per page
+if (!empty($user->property_manager_id)) {
+    $query->where('property_manager_id', $user->property_manager_id);
+}
+
+$apartments = $query->orderBy('id')->paginate(6);
+
+    
 
     // Check sync if apartments are empty
     if ($apartments->isEmpty()) {
@@ -413,14 +417,19 @@ public function edit($block_id, $shelter_id, $apart_id)
         }
 
         // Fetch the apartment
-        $apartment = ApartmentIdentity::where('id', $apart_id)
-            ->where('block_models_id', $block_id)
-            ->where('shelter_id', $shelter_id)
-            ->first();
+       $query = ApartmentIdentity::visibleTo($user)->where('id', $apart_id)
+    ->where('block_models_id', $block_id)
+    ->where('shelter_id', $shelter_id);
 
-        if (!$apartment) {
-            return redirect()->back()->with('error', 'Apartment not found.');
-        }
+if (!empty($user->property_manager_id)) {
+    $query->where('property_manager_id', $user->property_manager_id);
+}
+
+$apartment = $query->first();
+
+if (!$apartment) {
+    return redirect()->back()->with('error', 'Apartment not found or you do not have permission to access it.');
+}
 
         // Fetch shelter amenities for the apartment
         $amenity_apartment = Shelter_Amenities::with(['amenity.amenitySizes'])
