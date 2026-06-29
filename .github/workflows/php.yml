@@ -2,82 +2,120 @@ name: Laravel Build & Deploy to cPanel
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
 
 permissions:
   contents: read
 
+env:
+  BASE_DEPLOY_PATH: /home2/netporta/public_html/dwello.netportal.com.ng
+
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout code
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # 2. Setup PHP
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.4
-          extensions: mbstring, pdo, xml, bcmath, fileinfo, openssl
+          php-version: "8.4"
+          extensions: mbstring,pdo,xml,bcmath,fileinfo
 
-      # 3. Validate Composer
-      - name: Validate composer.json
-        run: composer validate --strict
-
-      # 4. Install Composer dependencies
       - name: Install Composer dependencies
-        run: composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+        run: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
 
-      # 5. Setup Node
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      # 6. Install Node dependencies
-      - name: Install NPM dependencies
+      - name: Install Node dependencies
         run: npm ci
 
-      # 7. Build Vite assets (CRITICAL FIX)
-      - name: Build frontend assets
+      - name: Build assets
         run: npm run build
 
-      # 8. Debug (IMPORTANT - prevents silent failures)
-      - name: Verify build exists
-        run: ls -la public/build
+      - name: Create deployment archive
+        run: |
+          tar \
+            --exclude=.git \
+            --exclude=.github \
+            --exclude=node_modules \
+            --exclude=tests \
+            --exclude=.env \
+            --exclude=storage/logs \
+            --exclude=bootstrap/cache \
+            -czf /tmp/laravel.tar.gz .
 
-      # 9. Upload Vite build to server (FIXED PATH)
-      - name: Upload build folder
+      - name: Upload deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: laravel
+          path: /tmp/laravel.tar.gz
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        app:
+          - tap
+          - woc
+          - oaa
+          - toc
+          - wac
+
+    steps:
+      - name: Download deployment artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: laravel
+
+      - name: Upload archive
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: "public/build/"
-          target: ${{secrets.DEPLOY_PATH }}
+          source: laravel.tar.gz
+          target: "${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
 
-      # 10. Deploy backend via SSH
-      - name: Deploy Laravel backend
+      - name: Deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /home2/netporta/repositories/estate_manager
+            set -e
 
-            echo "Pulling latest code..."
-            git pull origin main
+            APP_DIR="${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
 
-            echo "Installing PHP dependencies..."
-            composer install --no-dev --optimize-autoloader
+            mkdir -p "$APP_DIR"
+            cd "$APP_DIR"
 
-            echo "Clearing Laravel cache..."
+            echo "Extracting application..."
+            tar -xzf laravel.tar.gz
+            rm -f laravel.tar.gz
+
+            echo "Installing Composer dependencies..."
+            composer install \
+              --no-dev \
+              --prefer-dist \
+              --no-interaction \
+              --optimize-autoloader
+
             php artisan optimize:clear
-            echo "running migrations"
+            php artisan config:cache
+            php artisan view:cache
+
             php artisan migrate --force
-            echo "Deployment complete!"
+
+            echo "Deployment completed for ${{ matrix.app }}"
+
