@@ -25,6 +25,7 @@ class InvoiceController extends Controller
     {
          $user = Session::get('user');
         $permissions = Session::get('permissions');
+        
         if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'read_invoice')))) {
             return redirect()->back()->with('error', 'Unauthorized access to invoices.');
         }
@@ -173,7 +174,7 @@ try {
      */
     public function edit(int $id)
 {
-    
+
      $user = Session::get('user');
         $permissions = Session::get('permissions');
         if (!$user || (!$user->system_admin && (!$permissions || !$permissions->contains('slug', 'update_invoice')))) {

@@ -45,7 +45,7 @@ class ManagerController extends Controller
     $validated = $request->validate([
         'lName'    => 'required|string|max:255',
         'fName'    => 'required|string|max:255',
-        'email'    => 'required|email|unique:managers,email|unique:users,email',
+        'email'    => 'required|email|unique:managers,email|unique:users,email|unique:admin_models,email',
         'phone'    => 'nullable|string|max:20',
         'password' => 'required|string|min:8|confirmed',
     ]);

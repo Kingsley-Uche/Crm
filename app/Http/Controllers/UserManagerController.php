@@ -193,7 +193,7 @@ protected function generateRandomPassword($length = 8)
 
         $permissions = $role->permissions;
         return $permissions;
-    }else if($user->is_system_admin===1){
+    }else if((int)$user->is_system_admin===1){
         $permissions = PermissionsModel::select('id', 'slug')->get();
         return $permissions;
         
