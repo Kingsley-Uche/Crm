@@ -8,8 +8,66 @@ on:
 permissions:
   contents: read
 
+env:
+  BASE_DEPLOY_PATH: /home2/netporta/public_html/dwello.netportal.com.ng
+
 jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: mbstring, pdo, xml, bcmath, fileinfo
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Remove unwanted files
+        run: |
+          rm -rf .git
+          rm -rf .github
+          rm -rf node_modules
+          rm -rf tests
+          rm -rf storage/logs/*
+          rm -rf bootstrap/cache/*
+          rm -f .env
+
+      - name: Create deployment archive
+        run: |
+          tar \
+            --exclude=.git \
+            --exclude=.github \
+            --exclude=node_modules \
+            --exclude=tests \
+            --exclude=.env \
+            -czf laravel.tar.gz .
+
+      - name: Upload deployment artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: laravel
+          path: laravel.tar.gz
+
   deploy:
+    needs: build
     runs-on: ubuntu-latest
 
     strategy:
@@ -22,92 +80,52 @@ jobs:
           - toc
           - wac
 
-    env:
-      BASE_DEPLOY_PATH: /home2/netporta/public_html/dwello.netportal.com.ng
-
     steps:
-      # Checkout source
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # Setup PHP
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+      - name: Download artifact
+        uses: actions/download-artifact@v4
         with:
-          php-version: "8.4"
-          extensions: mbstring, pdo, xml, bcmath, fileinfo, openssl
+          name: laravel
 
-      # Validate Composer
-      - name: Validate composer.json
-        run: composer validate --strict
-
-      # Install Composer dependencies
-      - name: Install Composer dependencies
-        run: composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
-
-      # Setup Node
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      # Install NPM dependencies
-      - name: Install NPM dependencies
-        run: npm ci
-
-      # Build frontend assets
-      - name: Build frontend assets
-        run: npm run build
-
-      # Verify build
-      - name: Verify build exists
-        run: ls -la public/build
-
-      # Upload Laravel project
-      - name: Upload application to ${{ matrix.app }}
+      - name: Upload archive
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-
-          source: |
-            ./*
-            !.git
-            !.github
-            !node_modules
-            !tests
-            !storage
-            !bootstrap/cache
-            !.env
-
+          source: laravel.tar.gz
           target: "${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
-          overwrite: true
-          rm: false
 
-      # Finalize deployment
-      - name: Optimize Laravel (${{ matrix.app }})
+      - name: Deploy application
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd "${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
+            set -e
+
+            APP_DIR="${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
+
+            cd "$APP_DIR"
+
+            echo "Extracting application..."
+            tar -xzf laravel.tar.gz
+            rm -f laravel.tar.gz
 
             echo "Installing Composer dependencies..."
-            composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+            composer install \
+              --no-dev \
+              --prefer-dist \
+              --no-interaction \
+              --optimize-autoloader
 
-            echo "Clearing caches..."
+            echo "Running Laravel optimization..."
             php artisan optimize:clear
-
-            echo "Caching configuration..."
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
 
-            echo "Running migrations..."
+            echo "Running database migrations..."
             php artisan migrate --force
 
-            echo "Deployment completed for ${{ matrix.app }}."
+            echo "Deployment completed for ${{ matrix.app }}"
