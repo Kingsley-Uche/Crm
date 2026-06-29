@@ -16,14 +16,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.4"
-          extensions: mbstring, pdo, xml, bcmath, fileinfo
+          extensions: mbstring,pdo,xml,bcmath,fileinfo
 
       - name: Install Composer dependencies
         run: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
@@ -40,16 +39,6 @@ jobs:
       - name: Build assets
         run: npm run build
 
-      - name: Remove unwanted files
-        run: |
-          rm -rf .git
-          rm -rf .github
-          rm -rf node_modules
-          rm -rf tests
-          rm -rf storage/logs/*
-          rm -rf bootstrap/cache/*
-          rm -f .env
-
       - name: Create deployment archive
         run: |
           tar \
@@ -58,13 +47,15 @@ jobs:
             --exclude=node_modules \
             --exclude=tests \
             --exclude=.env \
-            -czf laravel.tar.gz .
+            --exclude=storage/logs \
+            --exclude=bootstrap/cache \
+            -czf /tmp/laravel.tar.gz .
 
       - name: Upload deployment artifact
         uses: actions/upload-artifact@v4
         with:
           name: laravel
-          path: laravel.tar.gz
+          path: /tmp/laravel.tar.gz
 
   deploy:
     needs: build
@@ -81,7 +72,7 @@ jobs:
           - wac
 
     steps:
-      - name: Download artifact
+      - name: Download deployment artifact
         uses: actions/download-artifact@v4
         with:
           name: laravel
@@ -95,7 +86,7 @@ jobs:
           source: laravel.tar.gz
           target: "${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
 
-      - name: Deploy application
+      - name: Deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -106,6 +97,7 @@ jobs:
 
             APP_DIR="${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
 
+            mkdir -p "$APP_DIR"
             cd "$APP_DIR"
 
             echo "Extracting application..."
@@ -119,13 +111,11 @@ jobs:
               --no-interaction \
               --optimize-autoloader
 
-            echo "Running Laravel optimization..."
             php artisan optimize:clear
             php artisan config:cache
-            php artisan route:cache
             php artisan view:cache
 
-            echo "Running database migrations..."
             php artisan migrate --force
 
             echo "Deployment completed for ${{ matrix.app }}"
+
