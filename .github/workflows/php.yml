@@ -2,7 +2,8 @@ name: Laravel Build & Deploy to cPanel
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -11,73 +12,102 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        app:
+          - tap
+          - woc
+          - oaa
+          - toc
+          - wac
+
+    env:
+      BASE_DEPLOY_PATH: /home2/netporta/public_html/dwello.netportal.com.ng
+
     steps:
-      # 1. Checkout code
+      # Checkout source
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Setup PHP
+      # Setup PHP
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.4
+          php-version: "8.4"
           extensions: mbstring, pdo, xml, bcmath, fileinfo, openssl
 
-      # 3. Validate Composer
+      # Validate Composer
       - name: Validate composer.json
         run: composer validate --strict
 
-      # 4. Install Composer dependencies
+      # Install Composer dependencies
       - name: Install Composer dependencies
         run: composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
-      # 5. Setup Node
+      # Setup Node
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      # 6. Install Node dependencies
+      # Install NPM dependencies
       - name: Install NPM dependencies
         run: npm ci
 
-      # 7. Build Vite assets (CRITICAL FIX)
+      # Build frontend assets
       - name: Build frontend assets
         run: npm run build
 
-      # 8. Debug (IMPORTANT - prevents silent failures)
+      # Verify build
       - name: Verify build exists
         run: ls -la public/build
 
-      # 9. Upload Vite build to server (FIXED PATH)
-      - name: Upload build folder
+      # Upload Laravel project
+      - name: Upload application to ${{ matrix.app }}
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: "public/build/"
-          target: ${{secrets.DEPLOY_PATH }}
 
-      # 10. Deploy backend via SSH
-      - name: Deploy Laravel backend
+          source: |
+            ./*
+            !.git
+            !.github
+            !node_modules
+            !tests
+            !storage
+            !bootstrap/cache
+            !.env
+
+          target: "${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
+          overwrite: true
+          rm: false
+
+      # Finalize deployment
+      - name: Optimize Laravel (${{ matrix.app }})
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /home2/netporta/repositories/estate_manager
+            cd "${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
 
-            echo "Pulling latest code..."
-            git pull origin main
+            echo "Installing Composer dependencies..."
+            composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
-            echo "Installing PHP dependencies..."
-            composer install --no-dev --optimize-autoloader
-
-            echo "Clearing Laravel cache..."
+            echo "Clearing caches..."
             php artisan optimize:clear
-            echo "running migrations"
+
+            echo "Caching configuration..."
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            echo "Running migrations..."
             php artisan migrate --force
-            echo "Deployment complete!"
+
+            echo "Deployment completed for ${{ matrix.app }}."
