@@ -16,7 +16,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -24,38 +25,36 @@ jobs:
           php-version: "8.4"
           extensions: mbstring,pdo,xml,bcmath,fileinfo
 
-      - name: Install Composer dependencies
-        run: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      - name: Install Node dependencies
+      - name: Install Node Packages
         run: npm ci
 
-      - name: Build assets
+      - name: Build Assets
         run: npm run build
 
-      - name: Create deployment archive
+      - name: Create Deployment Archive
         run: |
           tar \
             --exclude=.git \
             --exclude=.github \
             --exclude=node_modules \
+            --exclude=vendor \
             --exclude=tests \
+            --exclude=storage \
+            --exclude=bootstrap/cache/*.php \
             --exclude=.env \
-            --exclude=storage/logs \
-            --exclude=bootstrap/cache \
-            -czf /tmp/laravel.tar.gz .
+            -czf laravel.tar.gz .
 
-      - name: Upload deployment artifact
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: laravel
-          path: /tmp/laravel.tar.gz
+          path: laravel.tar.gz
 
   deploy:
     needs: build
@@ -72,12 +71,12 @@ jobs:
           - wac
 
     steps:
-      - name: Download deployment artifact
+      - name: Download Artifact
         uses: actions/download-artifact@v4
         with:
           name: laravel
 
-      - name: Upload archive
+      - name: Upload Archive
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -86,7 +85,7 @@ jobs:
           source: laravel.tar.gz
           target: "${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
 
-      - name: Deploy
+      - name: Deploy Application
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -100,9 +99,23 @@ jobs:
             mkdir -p "$APP_DIR"
             cd "$APP_DIR"
 
+            # Put application into maintenance mode if it already exists
+            if [ -f artisan ]; then
+              php artisan down || true
+            fi
+
             echo "Extracting application..."
             tar -xzf laravel.tar.gz
             rm -f laravel.tar.gz
+
+            # Ensure persistent directories exist
+            mkdir -p storage/framework/cache
+            mkdir -p storage/framework/sessions
+            mkdir -p storage/framework/views
+            mkdir -p storage/logs
+            mkdir -p bootstrap/cache
+
+            chmod -R 775 storage bootstrap/cache || true
 
             echo "Installing Composer dependencies..."
             composer install \
@@ -112,10 +125,9 @@ jobs:
               --optimize-autoloader
 
             php artisan optimize:clear
-            php artisan config:cache
-            php artisan view:cache
 
-            php artisan migrate --force
+            php artisan optimize
+
+            php artisan up || true
 
             echo "Deployment completed for ${{ matrix.app }}"
-
