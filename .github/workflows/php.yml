@@ -105,7 +105,7 @@ jobs:
             php artisan down || true
 
             # 5. Install PHP dependencies
-            composer install \
+            composer update \
               --no-dev \
               --prefer-dist \
               --no-interaction \
