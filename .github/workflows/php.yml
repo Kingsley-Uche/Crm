@@ -1,4 +1,4 @@
-]name: Laravel Deploy via Git Pull
+name: Laravel Deploy via Git Pull
 
 on:
   push:
