@@ -7,7 +7,7 @@ use App\Models\ParkPermits;
 use App\Models\PestModel;
 use Carbon\Carbon;
 
-class NoficationController extends Controller
+class NotificationController extends Controller
 {
     public function checkDueRepairs()
     {
