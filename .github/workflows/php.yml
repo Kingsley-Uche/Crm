@@ -131,6 +131,15 @@ jobs:
           source: "public/build"
           target: "${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}/public"
 
+
+      - name: Debug downloaded artifact
+        run: |
+          echo "Current directory:"
+          pwd
+          echo
+          echo "Listing everything:"
+          find .
+
       ###########################################################
       # Verify deployment
       ###########################################################
