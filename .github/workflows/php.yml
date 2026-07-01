@@ -1,4 +1,4 @@
-name: Laravel Deploy via Git Pull
+name: Laravel Deploy
 
 on:
   push:
@@ -28,7 +28,7 @@ jobs:
       - name: Install Node Dependencies
         run: npm ci
 
-      - name: Build Assets (Vite)
+      - name: Build Vite Assets
         run: npm run build
 
       - name: Upload Build Artifact
@@ -36,6 +36,7 @@ jobs:
         with:
           name: vite-build
           path: public/build
+          if-no-files-found: error
 
   deploy:
     needs: build
@@ -43,6 +44,8 @@ jobs:
 
     strategy:
       fail-fast: false
+      max-parallel: 1
+
       matrix:
         app:
           - tap
@@ -52,20 +55,19 @@ jobs:
           - wac
 
     steps:
+      ###########################################################
+      # Download compiled Vite assets
+      ###########################################################
+
       - name: Download Build Artifact
         uses: actions/download-artifact@v4
         with:
           name: vite-build
-          path: public/build
+          path: public
 
-      - name: Upload Vite Build to Server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          source: "public/build/*"
-          target: "${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}/public/build"
+      ###########################################################
+      # Deploy Laravel
+      ###########################################################
 
       - name: Deploy Laravel Application
         uses: appleboy/ssh-action@v1.2.0
@@ -82,13 +84,16 @@ jobs:
 
             cd "$APP_DIR"
 
-            # 1. Ensure this is a Git repository
             if [ ! -d ".git" ]; then
-              echo "ERROR: $APP_DIR is not a Git repository."
+              echo "Git repository not found."
               exit 1
             fi
 
-            # 2. Ensure Laravel required directories exist
+            php artisan down || true
+
+            git fetch origin
+            git reset --hard origin/main
+
             mkdir -p bootstrap/cache
             mkdir -p storage/framework/cache
             mkdir -p storage/framework/sessions
@@ -97,26 +102,51 @@ jobs:
 
             chmod -R 775 storage bootstrap/cache || true
 
-            # 3. Update code from Git
-            git fetch origin
-            git reset --hard origin/main
-
-            # 4. Maintenance mode (safe fallback)
-            php artisan down || true
             php artisan optimize:clear
 
-            # 5. Install PHP dependencies
             composer install \
-            --no-dev \
-            --prefer-dist \
-            --no-interaction \
-            --optimize-autoloader
+              --no-dev \
+              --prefer-dist \
+              --no-interaction \
+              --optimize-autoloader
 
-            # 6. Laravel optimization
-          
+            composer dump-autoload --optimize
+
             php artisan optimize
 
-            # 7. Bring application back online
+            rm -rf public/build
+
             php artisan up || true
+
+      ###########################################################
+      # Upload compiled Vite assets
+      ###########################################################
+
+      - name: Upload Vite Assets
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "public/build"
+          target: "${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}/public"
+
+      ###########################################################
+      # Verify deployment
+      ###########################################################
+
+      - name: Verify Build
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            APP_DIR="${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
+
+            if [ ! -f "$APP_DIR/public/build/manifest.json" ]; then
+              echo "ERROR: Vite manifest missing."
+              exit 1
+            fi
 
             echo "${{ matrix.app }} deployed successfully."
