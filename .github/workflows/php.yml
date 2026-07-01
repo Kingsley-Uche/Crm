@@ -36,7 +36,16 @@ jobs:
         with:
           name: vite-build
           path: public/build
-          if-no-files-found: error
+          if-no-files-found: error- name: 
+            Debug downloaded artifact
+        run: |
+          echo "Current directory:"
+          pwd
+          echo
+          echo "Listing everything:"
+          find .
+
+        
 
   deploy:
     needs: build
@@ -130,15 +139,6 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           source: "public/build"
           target: "${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}/public"
-
-
-      - name: Debug downloaded artifact
-        run: |
-          echo "Current directory:"
-          pwd
-          echo
-          echo "Listing everything:"
-          find .
 
       ###########################################################
       # Verify deployment
