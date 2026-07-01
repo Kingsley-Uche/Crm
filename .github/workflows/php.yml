@@ -105,11 +105,11 @@ jobs:
             php artisan down || true
 
             # 5. Install PHP dependencies
-            composer update \
-              --no-dev \
-              --prefer-dist \
-              --no-interaction \
-              --optimize-autoloader
+          composer install \
+            --no-dev \
+            --prefer-dist \
+            --no-interaction \
+            --optimize-autoloader
 
             # 6. Laravel optimization
             php artisan optimize:clear
