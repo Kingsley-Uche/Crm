@@ -103,6 +103,7 @@ jobs:
 
             # 4. Maintenance mode (safe fallback)
             php artisan down || true
+            php artisan optimize:clear
 
             # 5. Install PHP dependencies
             composer install \
@@ -112,7 +113,7 @@ jobs:
             --optimize-autoloader
 
             # 6. Laravel optimization
-            php artisan optimize:clear
+          
             php artisan optimize
 
             # 7. Bring application back online
