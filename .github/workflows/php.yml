@@ -1,4 +1,4 @@
-name: Laravel Build & Deploy to cPanel
+name: Laravel Deploy via Git Pull
 
 on:
   push:
@@ -16,46 +16,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.4"
-          extensions: mbstring,pdo,xml,bcmath,fileinfo
-
-      - name: Install Composer dependencies
-        run: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
-
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      - name: Install Node dependencies
+      - name: Install Node Dependencies
         run: npm ci
 
-      - name: Build assets
+      - name: Build Assets (Vite)
         run: npm run build
 
-      - name: Create deployment archive
-        run: |
-          tar \
-            --exclude=.git \
-            --exclude=.github \
-            --exclude=node_modules \
-            --exclude=tests \
-            --exclude=.env \
-            --exclude=storage/logs \
-            --exclude=bootstrap/cache \
-            -czf /tmp/laravel.tar.gz .
-
-      - name: Upload deployment artifact
+      - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: laravel
-          path: /tmp/laravel.tar.gz
+          name: vite-build
+          path: public/build
 
   deploy:
     needs: build
@@ -72,22 +52,23 @@ jobs:
           - wac
 
     steps:
-      - name: Download deployment artifact
+      - name: Download Build Artifact
         uses: actions/download-artifact@v4
         with:
-          name: laravel
+          name: vite-build
+          path: public/build
 
-      - name: Upload archive
+      - name: Upload Vite Build to Server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: laravel.tar.gz
-          target: "${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
+          source: "public/build/*"
+          target: "${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}/public/build"
 
-      - name: Deploy
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Deploy Laravel Application
+        uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
@@ -97,25 +78,44 @@ jobs:
 
             APP_DIR="${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
 
-            mkdir -p "$APP_DIR"
+            echo "Deploying ${{ matrix.app }}..."
+
             cd "$APP_DIR"
 
-            echo "Extracting application..."
-            tar -xzf laravel.tar.gz
-            rm -f laravel.tar.gz
+            # 1. Ensure this is a Git repository
+            if [ ! -d ".git" ]; then
+              echo "ERROR: $APP_DIR is not a Git repository."
+              exit 1
+            fi
 
-            echo "Installing Composer dependencies..."
-            composer install \
+            # 2. Ensure Laravel required directories exist
+            mkdir -p bootstrap/cache
+            mkdir -p storage/framework/cache
+            mkdir -p storage/framework/sessions
+            mkdir -p storage/framework/views
+            mkdir -p storage/logs
+
+            chmod -R 775 storage bootstrap/cache || true
+
+            # 3. Update code from Git
+            git fetch origin
+            git reset --hard origin/main
+
+            # 4. Maintenance mode (safe fallback)
+            php artisan down || true
+
+            # 5. Install PHP dependencies
+            composer update \
               --no-dev \
               --prefer-dist \
               --no-interaction \
               --optimize-autoloader
 
+            # 6. Laravel optimization
             php artisan optimize:clear
-            php artisan config:cache
-            php artisan view:cache
+            php artisan optimize
 
-            php artisan migrate --force
+            # 7. Bring application back online
+            php artisan up || true
 
-            echo "Deployment completed for ${{ matrix.app }}"
-
+            echo "${{ matrix.app }} deployed successfully."
