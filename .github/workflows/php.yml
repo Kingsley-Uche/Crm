@@ -22,7 +22,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install Node Dependencies
@@ -35,7 +35,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: vite-build
-          path: public/build
+          path: /build
           if-no-files-found: error
 
   deploy:
@@ -118,6 +118,7 @@ jobs:
             APP_DIR="${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
             if [ ! -f "$APP_DIR/public/build/manifest.json" ]; then
               echo "ERROR: Vite manifest missing for ${{ matrix.app }}"
+              echo "directory: $APP_DIR"
               exit 1
             fi
             echo "${{ matrix.app }} deployed successfully."
