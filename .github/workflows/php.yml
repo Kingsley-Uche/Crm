@@ -38,14 +38,6 @@ jobs:
           path: public/build
           if-no-files-found: error
 
-      - name: Debug Artifact
-        run: |
-          echo "Current directory:"
-          pwd
-          echo
-          echo "Listing build directory:"
-          ls -la public/build
-
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -60,20 +52,81 @@ jobs:
           - oaa
           - toc
           - wac
-
     steps:
-      ###########################################################
-      # Download compiled Vite assets
-      ###########################################################
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: vite-build
+          path: public/build               # ← Important
+
+      - name: Deploy Laravel Application
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+
+            APP_DIR="${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
+
+            echo "Deploying ${{ matrix.app }}..."
+
+            cd "$APP_DIR"
+
+            if [ ! -d ".git" ]; then
+              echo "Git repository not found."
+              exit 1
+            fi
+
+            php artisan down || true
+
+            git fetch origin
+            git reset --hard origin/main
+
+            mkdir -p bootstrap/cache storage/framework/{cache,sessions,views} storage/logs
+
+            chmod -R 775 storage bootstrap/cache || true
+
+            php artisan optimize:clear
+
+            composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+            composer dump-autoload --optimize
+
+            php artisan optimize
+
+            rm -rf public/build                    # Clean old build
+
+            php artisan up || true
+
+      - name: Upload Vite Assets
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "public/build"                   # ← Source on runner
+          target: "${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}/public"   # ← Target on server
+
+      - name: Verify Build
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            APP_DIR="${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
+            if [ ! -f "$APP_DIR/public/build/manifest.json" ]; then
+              echo "ERROR: Vite manifest missing for ${{ matrix.app }}"
+              exit 1
+            fi
+            echo "${{ matrix.app }} deployed successfully."
       - name: Download Build Artifact
         uses: actions/download-artifact@v4
         with:
           name: vite-build
           path: public/build
 
-      ###########################################################
-      # Deploy Laravel
-      ###########################################################
       - name: Deploy Laravel Application
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -119,9 +172,6 @@ jobs:
 
             php artisan up || true
 
-      ###########################################################
-      # Upload compiled Vite assets
-      ###########################################################
       - name: Upload Vite Assets
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -129,11 +179,8 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           source: "public/build"
-          target: "${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
+          target: "${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}/public"
 
-      ###########################################################
-      # Verify deployment
-      ###########################################################
       - name: Verify Build
         uses: appleboy/ssh-action@v1.2.0
         with:
