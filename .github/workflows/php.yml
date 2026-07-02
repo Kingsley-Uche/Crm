@@ -170,30 +170,46 @@ jobs:
               exit 1
             fi
 
-            # 2. Run pending migrations
-            #    --force required in production (non-interactive)
+            # 2. Ensure APP_URL always matches the subfolder this app lives under.
+            #    This is the root cause of assets loading from the domain root
+            #    instead of /tap/ or /woc/ — .env on the server must have the
+            #    correct subfolder baked into APP_URL.
+            CORRECT_URL="https://dwello.netportal.com.ng/${{ matrix.app }}"
+
+            if [ -f ".env" ]; then
+              # Update existing APP_URL line in-place
+              sed -i "s|^APP_URL=.*|APP_URL=${CORRECT_URL}|" .env
+            else
+              echo "ERROR: .env file missing in $APP_DIR"
+              php artisan up || true
+              exit 1
+            fi
+
+            echo "APP_URL set to: ${CORRECT_URL}"
+
+            # 3. Run pending migrations
             php artisan migrate --force
 
-            # 3. Clear any leftover runtime caches from old code
+            # 4. Clear all runtime caches (config must be cleared BEFORE re-caching
+            #    so the new APP_URL value is picked up from the updated .env)
             php artisan config:clear
             php artisan route:clear
             php artisan view:clear
             php artisan event:clear
 
-            # 4. Rebuild caches for production performance
+            # 5. Rebuild caches with the correct APP_URL now in effect
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
             php artisan event:cache
 
-            # 5. Restart queue workers so they pick up new code
-            #    (only if you're running queues — remove if not)
+            # 6. Restart queue workers so they pick up new code
             php artisan queue:restart || true
 
-            # 6. Bring the app back online
+            # 7. Bring the app back online
             php artisan up
 
-            echo "=== ${{ matrix.app }} deployed successfully ==="
+            echo "=== ${{ matrix.app }} deployed successfully at ${CORRECT_URL} ==="
 
       # ── Notify on failure ──
       - name: Notify on Failure
