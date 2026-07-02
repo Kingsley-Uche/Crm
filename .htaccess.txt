@@ -1,17 +1,9 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    #
-    # Serve files/directories from public/
-    #
-    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
 
-    RewriteCond %{DOCUMENT_ROOT}/dwello.netportal.com.ng/tap/public/$1 -f [OR]
-    RewriteCond %{DOCUMENT_ROOT}/dwello.netportal.com.ng/tap/public/$1 -d
-    RewriteRule ^(.*)$ public/$1 [L]
-
-    #
-    # Otherwise boot Laravel
-    #
-    RewriteRule ^(.*)$ public/index.php [L]
+    RewriteRule ^ index.php [L]
 </IfModule>
