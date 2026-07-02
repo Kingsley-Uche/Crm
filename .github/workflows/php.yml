@@ -82,22 +82,23 @@ jobs:
 
             php artisan down || true
 
-            # Clean out the old build folder BEFORE uploading the new one
+            # 1. Clear out old builds and any hidden broken cache files
             rm -rf public/build
+            rm -f bootstrap/cache/*.php
 
+            # 2. Reset your app code to match your main branch perfectly
             git fetch origin
             git reset --hard origin/main
 
-            mkdir -p bootstrap/cache storage/framework/{cache,sessions,views} storage/logs
+            # 3. NUKE THE CORRUPTED VENDOR DIRECTORY
+            rm -rf vendor
 
+            # 4. Re-verify basic directory structures and permissions
+            mkdir -p bootstrap/cache storage/framework/{cache,sessions,views} storage/logs
             chmod -R 775 storage bootstrap/cache || true
 
-            php artisan optimize:clear
-
+            # 5. Run a completely fresh, optimized composer installation
             composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
-            composer dump-autoload --optimize
-
-            php artisan optimize
 
             php artisan up || true
 
