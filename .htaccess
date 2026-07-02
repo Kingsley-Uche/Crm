@@ -1,11 +1,9 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Redirect /tap to /tap/public/ if accessed directly
-    RewriteRule ^$ public/ [L]
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
 
-    # If the file or directory exists inside public, use it
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.*)$ public/$1 [L]
+    RewriteRule ^ index.php [L]
 </IfModule>
