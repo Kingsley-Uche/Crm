@@ -1,4 +1,4 @@
-name: Laravel Deploy
+name: Ecommerce Deploy
 
 on:
   push:
@@ -107,7 +107,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           source: "public/build"
-          target: "${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}/public"
+          target: "${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
 
       - name: Verify Build
         uses: appleboy/ssh-action@v1.2.0
