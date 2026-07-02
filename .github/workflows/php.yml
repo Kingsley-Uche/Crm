@@ -22,7 +22,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
           cache: npm
 
       - name: Install Node Dependencies
@@ -35,7 +35,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: vite-build
-          path: /build
+          path: public/build          # ← This was the main bug
           if-no-files-found: error
 
   deploy:
@@ -52,76 +52,8 @@ jobs:
           - oaa
           - toc
           - wac
+
     steps:
-      - name: Download Build Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: vite-build
-          path: public/build               # ← Important
-
-      - name: Deploy Laravel Application
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            set -e
-
-            APP_DIR="${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
-
-            echo "Deploying ${{ matrix.app }}..."
-
-            cd "$APP_DIR"
-
-            if [ ! -d ".git" ]; then
-              echo "Git repository not found."
-              exit 1
-            fi
-
-            php artisan down || true
-
-            git fetch origin
-            git reset --hard origin/main
-
-            mkdir -p bootstrap/cache storage/framework/{cache,sessions,views} storage/logs
-
-            chmod -R 775 storage bootstrap/cache || true
-
-            php artisan optimize:clear
-
-            composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
-            composer dump-autoload --optimize
-
-            php artisan optimize
-
-            rm -rf public/build                    # Clean old build
-
-            php artisan up || true
-
-      - name: Upload Vite Assets
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          source: "public/build"                   # ← Source on runner
-          target: "${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}/"   # ← Target on server
-
-      - name: Verify Build
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            APP_DIR="${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
-            if [ ! -f "$APP_DIR/public/build/manifest.json" ]; then
-              echo "ERROR: Vite manifest missing for ${{ matrix.app }}"
-              echo "directory: $APP_DIR"
-              exit 1
-            fi
-            echo "${{ matrix.app }} deployed successfully."
       - name: Download Build Artifact
         uses: actions/download-artifact@v4
         with:
@@ -159,12 +91,7 @@ jobs:
 
             php artisan optimize:clear
 
-            composer install \
-              --no-dev \
-              --prefer-dist \
-              --no-interaction \
-              --optimize-autoloader
-
+            composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
             composer dump-autoload --optimize
 
             php artisan optimize
