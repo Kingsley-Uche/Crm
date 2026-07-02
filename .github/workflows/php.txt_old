@@ -1,0 +1,130 @@
+name: Ecommerce Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+env:
+  BASE_DEPLOY_PATH: /home2/netporta/public_html/dwello.netportal.com.ng
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install Node Dependencies
+        run: npm ci
+
+      - name: Build Vite Assets
+        run: npm run build
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vite-build
+          path: public/build
+          if-no-files-found: error
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        app:
+          - tap
+          - woc
+          - oaa
+          - toc
+          - wac
+
+    steps:
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: vite-build
+          path: build-output # Download to a neutral temporary directory
+
+      - name: Deploy Laravel Application
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+
+            APP_DIR="${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
+
+            echo "Deploying ${{ matrix.app }}..."
+
+            cd "$APP_DIR"
+
+            if [ ! -d ".git" ]; then
+              echo "Git repository not found."
+              exit 1
+            fi
+
+            php artisan down || true
+
+            # 1. Clear out old builds and any hidden broken cache files
+            rm -rf public/build
+            rm -f bootstrap/cache/*.php
+
+            # 2. Reset your app code to match your main branch perfectly
+            git fetch origin
+            git reset --hard origin/main
+
+            # 3. NUKE THE CORRUPTED VENDOR DIRECTORY
+            rm -rf vendor
+
+            # 4. Re-verify basic directory structures and permissions
+            mkdir -p bootstrap/cache storage/framework/{cache,sessions,views} storage/logs
+            chmod -R 775 storage bootstrap/cache || true
+
+            # 5. Run a completely fresh, optimized composer installation
+            composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+
+            php artisan up || true
+
+      - name: Upload Vite Assets
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "build-output/*" # Grabs everything inside our temporary artifact folder
+          strip_components: 1     # Strips the "build-output" root folder name when copying
+          target: "${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}/public/build"
+
+      - name: Verify Build
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            APP_DIR="${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
+
+            # Check if manifest exists in the correct directory
+            if [ ! -f "$APP_DIR/public/build/manifest.json" ]; then
+              echo "ERROR: Vite manifest missing for ${{ matrix.app }}"
+              exit 1
+            fi
+
+            echo "${{ matrix.app }} deployed successfully."

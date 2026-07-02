@@ -12,8 +12,23 @@ env:
   BASE_DEPLOY_PATH: /home2/netporta/public_html/dwello.netportal.com.ng
 
 jobs:
+  # ===========================================================
+  # JOB 1: Build one Vite artifact per app
+  # Each app has a different base path in vite.config.js, so
+  # they CANNOT share a single build artifact.
+  # ===========================================================
   build:
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        app:
+          - tap
+          - woc
+          - oaa
+          - toc
+          - wac
 
     steps:
       - name: Checkout Repository
@@ -28,23 +43,39 @@ jobs:
       - name: Install Node Dependencies
         run: npm ci
 
-      - name: Build Vite Assets
+      # Each app folder must contain its own vite.config.js with
+      # the correct base path, e.g.:
+      #   apps/tap/vite.config.js  → base: '/tap/'
+      #   apps/woc/vite.config.js  → base: '/woc/'
+      #
+      # If all apps share one codebase/repo, use an env variable:
+      #   VITE_APP_BASE=/tap/ npm run build
+      # and in vite.config.js:
+      #   base: process.env.VITE_APP_BASE ?? '/'
+      - name: Build Vite Assets for ${{ matrix.app }}
         run: npm run build
+        env:
+          VITE_APP_BASE: /${{ matrix.app }}/
 
-      - name: Upload Build Artifact
+      - name: Upload Build Artifact for ${{ matrix.app }}
         uses: actions/upload-artifact@v4
         with:
-          name: vite-build
+          # Each app gets its own named artifact — prevents cross-contamination
+          name: vite-build-${{ matrix.app }}
           path: public/build
           if-no-files-found: error
+          retention-days: 1   # artifacts only needed during this workflow run
 
+  # ===========================================================
+  # JOB 2: Deploy each app — waits for ALL builds to finish
+  # ===========================================================
   deploy:
     needs: build
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
-      max-parallel: 1
+      max-parallel: 2         # allow 2 parallel deploys; set to 1 if DB migrations conflict
       matrix:
         app:
           - tap
@@ -54,13 +85,14 @@ jobs:
           - wac
 
     steps:
-      - name: Download Build Artifact
+      - name: Download Build Artifact for ${{ matrix.app }}
         uses: actions/download-artifact@v4
         with:
-          name: vite-build
-          path: build-output # Download to a neutral temporary directory
+          name: vite-build-${{ matrix.app }}
+          path: build-output
 
-      - name: Deploy Laravel Application
+      # ── Phase 1: put app into maintenance, pull code, install deps ──
+      - name: Pull Code & Install Dependencies
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -68,63 +100,110 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             set -e
-
             APP_DIR="${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
 
-            echo "Deploying ${{ matrix.app }}..."
-
+            echo "=== Deploying ${{ matrix.app }} ==="
             cd "$APP_DIR"
 
             if [ ! -d ".git" ]; then
-              echo "Git repository not found."
+              echo "ERROR: .git not found in $APP_DIR"
               exit 1
             fi
 
-            php artisan down || true
+            # Put app into maintenance mode before touching anything
+            php artisan down --retry=10 --secret="${{ secrets.MAINTENANCE_SECRET }}" || true
 
-            # 1. Clear out old builds and any hidden broken cache files
-            rm -rf public/build
-            rm -f bootstrap/cache/*.php
-
-            # 2. Reset your app code to match your main branch perfectly
+            # Pull latest code
             git fetch origin
             git reset --hard origin/main
 
-            # 3. NUKE THE CORRUPTED VENDOR DIRECTORY
-            rm -rf vendor
+            # Clear old build so stale assets can't serve during upload
+            rm -rf public/build
+            rm -f bootstrap/cache/*.php
 
-            # 4. Re-verify basic directory structures and permissions
-            mkdir -p bootstrap/cache storage/framework/{cache,sessions,views} storage/logs
+            # Ensure directory structure is intact after git reset
+            mkdir -p bootstrap/cache \
+                     storage/framework/cache \
+                     storage/framework/sessions \
+                     storage/framework/views \
+                     storage/logs
+
             chmod -R 775 storage bootstrap/cache || true
 
-            # 5. Run a completely fresh, optimized composer installation
-            composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+            # Fresh composer install (no dev deps in production)
+            composer install \
+              --no-dev \
+              --prefer-dist \
+              --no-interaction \
+              --no-scripts \
+              --optimize-autoloader
 
-            php artisan up || true
-
-      - name: Upload Vite Assets
+      # ── Phase 2: copy the per-app Vite build to the server ──
+      # build-output/ contains the flat contents of public/build
+      # (manifest.json, assets/, etc.) — no extra stripping needed
+      - name: Upload Vite Assets for ${{ matrix.app }}
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: "build-output/*" # Grabs everything inside our temporary artifact folder
-          strip_components: 1     # Strips the "build-output" root folder name when copying
+          source: "build-output/"
+          strip_components: 1      # strips the "build-output" wrapper folder
           target: "${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}/public/build"
 
-      - name: Verify Build
+      # ── Phase 3: verify manifest, run migrations, warm caches, bring up ──
+      - name: Finalise Deployment for ${{ matrix.app }}
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            set -e
             APP_DIR="${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
+            cd "$APP_DIR"
 
-            # Check if manifest exists in the correct directory
-            if [ ! -f "$APP_DIR/public/build/manifest.json" ]; then
-              echo "ERROR: Vite manifest missing for ${{ matrix.app }}"
+            # 1. Verify Vite manifest landed correctly
+            if [ ! -f "public/build/manifest.json" ]; then
+              echo "ERROR: manifest.json missing — aborting"
+              php artisan up || true
               exit 1
             fi
 
-            echo "${{ matrix.app }} deployed successfully."
+            # 2. Run pending migrations
+            #    --force required in production (non-interactive)
+            php artisan migrate --force
+
+            # 3. Clear any leftover runtime caches from old code
+            php artisan config:clear
+            php artisan route:clear
+            php artisan view:clear
+            php artisan event:clear
+
+            # 4. Rebuild caches for production performance
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan event:cache
+
+            # 5. Restart queue workers so they pick up new code
+            #    (only if you're running queues — remove if not)
+            php artisan queue:restart || true
+
+            # 6. Bring the app back online
+            php artisan up
+
+            echo "=== ${{ matrix.app }} deployed successfully ==="
+
+      # ── Notify on failure ──
+      - name: Notify on Failure
+        if: failure()
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            # Ensure the app doesn't stay in maintenance if deploy failed
+            php artisan up --path="${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}" || true
+            echo "DEPLOYMENT FAILED for ${{ matrix.app }} — app restored to up state"
