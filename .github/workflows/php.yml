@@ -129,7 +129,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           source: "public/build"
-          target: "${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}/public"
+          target: "${{ env.BASE_DEPLOY_PATH }}/${{ matrix.app }}"
 
       ###########################################################
       # Verify deployment
