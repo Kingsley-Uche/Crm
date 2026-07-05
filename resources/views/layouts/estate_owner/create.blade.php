@@ -76,7 +76,7 @@
                                    id="email" 
                                    placeholder="Enter email" 
                                    value="{{ old('email') }}" 
-                                   required>
+                                   maxlength="80">
                             @error('email')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -105,7 +105,7 @@
                             <select class="form-select @error('means_of_identification') is-invalid @enderror" 
                                     name="means_of_identification" 
                                     id="means_of_identification" 
-                                    required>
+                                    >
                                 <option value="">Select identification type</option>
                                 <option value="passport" {{ old('means_of_identification') == 'passport' ? 'selected' : '' }}>Passport</option>
                                 <option value="nin" {{ old('means_of_identification') == 'nin' ? 'selected' : '' }}>NIN</option>
@@ -126,7 +126,7 @@
                                    name="identification_image" 
                                    id="identification_image" 
                                    accept="image/jpeg,image/png,image/jpg,application/pdf" 
-                                   required>
+                                   >
                             <small class="form-text text-muted">Max size: 2MB. Accepted: JPEG, PNG, JPG, PDF</small>
                             @error('identification_image')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -151,7 +151,7 @@
                     </div>
 
                     <div class="row mb-3">
-                        <label for="next_of_kin" class="col-sm-2 col-form-label">Next of Kin</label>
+                        <label for="next_of_kin" class="col-sm-2 col-form-label">Next of Kin Name</label>
                         <div class="col-sm-10">
                             <input class="form-control @error('next_of_kin') is-invalid @enderror" 
                                    type="text" 

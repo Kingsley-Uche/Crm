@@ -43,10 +43,10 @@ class EstateOwnerController extends Controller
         $validator = Validator::make($request->all(), [
             'fName' => 'required|string|max:160',
             'lName' => 'required|string|max:160',
-            'email' => 'required|email|unique:estate_owners,email',
+            'email' => 'nullable|email|unique:estate_owners,email',
             'phones' => 'required|string',
-            'means_of_identification' => 'required|in:passport,nin,driver_licence,nis',
-            'identification_image' => 'required|file|mimes:jpeg,png,jpg,pdf|max:2048',
+            'means_of_identification' => 'nullable|in:passport,nin,driver_licence,nis',
+            'identification_image' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
             'address' => 'required|string|max:190',
             'next_of_kin' => 'required|string|max:160',
             'next_of_kin_phone' => 'required|string', // Added missing validation
@@ -130,9 +130,9 @@ class EstateOwnerController extends Controller
         $validator = Validator::make($request->all(), [
             'fName' => 'sometimes|required|string|max:255',
             'lName' => 'sometimes|required|string|max:255',
-            'email' => "sometimes|required|email|unique:estate_owners,email,{$id}",
+            'email' => "sometimes|nullable|email|unique:estate_owners,email,{$id}",
             'phones' => 'sometimes|required|string',
-            'means_of_identification' => 'sometimes|required|in:passport,nin,driver_licence,nis',
+            'means_of_identification' => 'sometimes|nullable|in:passport,nin,driver_licence,nis',
             'identification_image' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048', // Changed to nullable
             'address' => 'sometimes|required|string|max:500',
             'next_of_kin' => 'sometimes|required|string|max:255',

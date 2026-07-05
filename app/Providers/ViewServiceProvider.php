@@ -6,8 +6,9 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use App\Http\Controllers\NoficationController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserManagerController;
+use App\Models\Repairs;
 
 class ViewServiceProvider extends ServiceProvider
 {
@@ -40,7 +41,7 @@ class ViewServiceProvider extends ServiceProvider
 
                 // 2. Optimize Notifications: Cache queries for 5 minutes
                 $notifications = Cache::remember("user_notifications_{$user->id}", 300, function () {
-                    $notificationController = app(NoficationController::class);
+                    $notificationController = app(NotificationController::class);
                     return [
                         'repairs'      => $notificationController->checkDueRepairs(),
                         'park_permits' => $notificationController->checkParkPermits(),

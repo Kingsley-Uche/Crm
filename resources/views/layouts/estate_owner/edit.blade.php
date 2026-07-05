@@ -81,7 +81,7 @@
                                    id="email" 
                                    placeholder="Enter email" 
                                    value="{{ old('email', $owner->email) }}" 
-                                   required>
+                                   maxlength="80">
                             @error('email')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -110,7 +110,7 @@
                             <select class="form-select @error('means_of_identification') is-invalid @enderror" 
                                     name="means_of_identification" 
                                     id="means_of_identification" 
-                                    required>
+                                    >
                                 <option value="">Select identification type</option>
                                 <option value="passport" {{ old('means_of_identification', $owner->means_of_identification) == 'passport' ? 'selected' : '' }}>Passport</option>
                                 <option value="nin" {{ old('means_of_identification', $owner->means_of_identification) == 'nin' ? 'selected' : '' }}>NIN</option>
@@ -159,7 +159,7 @@
                     </div>
 
                     <div class="row mb-3">
-                        <label for="next_of_kin" class="col-sm-2 col-form-label">Next of Kin</label>
+                        <label for="next_of_kin" class="col-sm-2 col-form-label">Next of Kin Name</label>
                         <div class="col-sm-10">
                             <input class="form-control @error('next_of_kin') is-invalid @enderror" 
                                    type="text" 
